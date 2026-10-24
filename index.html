@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b18">
+  <meta name="description" content="Binod Acharya — student portfolio, business interests, learning journey, and Icefall Challenge project.">
+  <title>Binod Acharya | Student Portfolio</title>
+  <style>
+    :root {
+      --bg: #101b18;
+      --bg-soft: #172520;
+      --panel: #1a2a23;
+      --panel-light: #21352b;
+      --text: #f2f3e9;
+      --muted: #a8b7aa;
+      --line: rgba(232, 242, 225, .13);
+      --lime: #c9f36b;
+      --lime-deep: #92bd3f;
+      --orange: #f2a66f;
+      --radius: 22px;
+      --max: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background: radial-gradient(ellipse at 80% -10%, rgba(201,243,107,.10), transparent 34%), var(--bg);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--lime); outline-offset: 4px; }
+    .shell { width: min(var(--max), calc(100% - 42px)); margin-inline: auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(16, 27, 24, .88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; font-weight: 850; letter-spacing: -.035em; }
+    .brand-mark { display: grid; place-items: center; width: 39px; height: 39px; border-radius: 13px; color: var(--bg); background: var(--lime); font-weight: 950; font-size: .96rem; }
+    .brand span:last-child { line-height: 1.1; }
+    .brand small { display: block; margin-top: 4px; color: var(--muted); font-size: .62rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+    .nav-links { display: flex; align-items: center; gap: 25px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: .87rem; font-weight: 650; transition: color .18s ease; }
+    .nav-links a:hover { color: var(--lime); }
+    .nav-links .nav-cta { padding: 10px 15px; color: var(--bg); background: var(--lime); border-radius: 999px; }
+    .nav-links .nav-cta:hover { color: var(--bg); background: #dcff91; }
+    .menu-toggle { display: none; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 11px; padding: 9px 12px; font: inherit; }
+
+    .hero { position: relative; display: grid; grid-template-columns: 1.3fr .7fr; align-items: center; gap: 54px; padding-block: 92px 84px; min-height: 590px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: var(--lime); font-size: .72rem; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 25px; height: 1px; background: currentColor; }
+    h1 { margin: 22px 0 20px; max-width: 720px; font-size: clamp(3.1rem, 7.6vw, 6.4rem); line-height: .97; letter-spacing: -.075em; font-weight: 850; }
+    h1 em { color: var(--lime); font-style: normal; }
+    .hero-copy { max-width: 620px; color: #c0cec2; font-size: clamp(1rem, 1.7vw, 1.13rem); }
+    .hero-copy strong { color: var(--text); font-weight: 750; }
+    .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 47px; padding: 12px 18px; border: 1px solid transparent; border-radius: 12px; text-decoration: none; font-size: .88rem; font-weight: 850; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { color: #142014; background: var(--lime); }
+    .btn-primary:hover { background: #dcff91; }
+    .btn-ghost { color: var(--text); border-color: var(--line); background: rgba(255,255,255,.025); }
+    .btn-ghost:hover { border-color: rgba(201,243,107,.55); }
+    .hero-note { display: flex; align-items: center; gap: 12px; margin-top: 30px; color: var(--muted); font-size: .8rem; }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px rgba(201,243,107,.1); }
+
+    .profile-art { position: relative; min-height: 365px; display: grid; place-items: center; }
+    .orbit { position: absolute; width: min(100%, 345px); aspect-ratio: 1; border: 1px solid rgba(201,243,107,.19); border-radius: 50%; transform: rotate(-18deg) scaleY(.85); }
+    .orbit::before, .orbit::after { content: ""; position: absolute; border: 1px solid rgba(201,243,107,.12); border-radius: 50%; inset: 22px; }
+    .orbit::after { inset: 48px; }
+    .portrait-card { position: relative; z-index: 1; width: min(78%, 275px); aspect-ratio: .82; border: 1px solid rgba(237,247,226,.22); border-radius: 28px; overflow: hidden; background: linear-gradient(145deg, #354d39, #1d3228 58%, #29362c); box-shadow: 0 25px 70px rgba(0,0,0,.28); transform: rotate(3deg); }
+    .portrait-card::before { content: ""; position: absolute; width: 240px; height: 240px; right: -70px; top: -70px; border-radius: 50%; background: rgba(201,243,107,.15); }
+    .portrait-card::after { content: ""; position: absolute; width: 260px; height: 110px; left: -35px; bottom: -45px; background: rgba(242,166,111,.16); border-radius: 50%; transform: rotate(-18deg); }
+    .avatar-initials { position: absolute; inset: 0; display: grid; place-items: center; color: var(--lime); font-size: clamp(5.4rem, 10vw, 8.3rem); font-weight: 900; letter-spacing: -.1em; text-shadow: 0 10px 45px rgba(0,0,0,.2); }
+    .card-label { position: absolute; z-index: 2; left: 17px; right: 17px; bottom: 17px; display: flex; justify-content: space-between; align-items: end; gap: 10px; color: #e7f1df; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; }
+    .card-label b { display: block; color: white; font-size: .9rem; letter-spacing: 0; text-transform: none; }
+    .floating-tag { position: absolute; z-index: 3; padding: 11px 14px; color: var(--text); background: #263b2e; border: 1px solid rgba(201,243,107,.2); border-radius: 13px; box-shadow: 0 14px 30px rgba(0,0,0,.25); font-weight: 750; font-size: .78rem; }
+    .floating-tag span { margin-right: 6px; color: var(--lime); }
+    .tag-top { top: 29px; right: 0; transform: rotate(4deg); }
+    .tag-bottom { left: -2px; bottom: 42px; transform: rotate(-4deg); }
+
+    .ticker { border-block: 1px solid var(--line); background: rgba(255,255,255,.018); }
+    .ticker-inner { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-block: 22px; }
+    .ticker-item { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .85rem; }
+    .ticker-item b { color: var(--text); display: block; font-size: .92rem; }
+    .ticker-icon { display: grid; place-items: center; width: 37px; height: 37px; border-radius: 11px; flex: 0 0 auto; color: var(--lime); background: rgba(201,243,107,.085); }
+
+    section.content-section { padding-block: 92px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 30px; }
+    .section-kicker { color: var(--lime); font-size: .7rem; font-weight: 850; letter-spacing: .17em; text-transform: uppercase; }
+    h2 { margin: 8px 0 0; font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: 1.07; letter-spacing: -.055em; }
+    .section-intro { max-width: 440px; margin: 0; color: var(--muted); font-size: .93rem; }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgba(35,54,43,.8), rgba(23,37,31,.86)); }
+    .about-panel { padding: clamp(22px, 4vw, 34px); }
+    .about-panel h3 { margin: 0 0 12px; font-size: 1.2rem; letter-spacing: -.025em; }
+    .about-panel p { margin: 0 0 13px; color: #bfcec1; }
+    .about-panel p:last-child { margin-bottom: 0; }
+    .focus-list { display: grid; gap: 10px; margin-top: 18px; }
+    .focus-item { display: flex; align-items: start; gap: 12px; padding: 13px; border: 1px solid rgba(233,242,226,.08); border-radius: 13px; background: rgba(255,255,255,.025); }
+    .check { flex: 0 0 auto; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; color: var(--bg); background: var(--lime); font-weight: 900; font-size: .75rem; }
+    .focus-item b { display: block; margin-bottom: 2px; font-size: .88rem; }
+    .focus-item span:last-child { color: var(--muted); font-size: .79rem; }
+
+    .journey { position: relative; display: grid; grid-template-columns: .72fr 1.28fr; gap: 40px; }
+    .journey-aside { padding: 27px; align-self: start; }
+    .journey-aside .big-year { color: var(--lime); font-weight: 900; font-size: 2.6rem; letter-spacing: -.06em; }
+    .journey-aside p { margin: 9px 0 0; color: var(--muted); }
+    .timeline { display: grid; gap: 14px; }
+    .timeline-item { position: relative; padding: 24px 25px 24px 28px; }
+    .timeline-item::before { content: ""; position: absolute; left: -7px; top: 32px; width: 12px; height: 12px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px var(--bg); }
+    .timeline-item .meta { color: var(--lime); font-size: .69rem; text-transform: uppercase; letter-spacing: .13em; font-weight: 850; }
+    .timeline-item h3 { margin: 7px 0 5px; font-size: 1.18rem; }
+    .timeline-item p { margin: 0; color: var(--muted); font-size: .9rem; }
+
+    .interests-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 15px; }
+    .interest-card { padding: 24px; min-height: 205px; transition: transform .2s ease, border-color .2s ease; }
+    .interest-card:hover { transform: translateY(-4px); border-color: rgba(201,243,107,.32); }
+    .interest-icon { width: 46px; height: 46px; display: grid; place-items: center; margin-bottom: 25px; border-radius: 14px; background: rgba(201,243,107,.1); font-size: 1.3rem; }
+    .interest-card h3 { margin: 0 0 7px; font-size: 1.1rem; }
+    .interest-card p { margin: 0; color: var(--muted); font-size: .86rem; }
+
+    .project-card { display: grid; grid-template-columns: .86fr 1.14fr; overflow: hidden; }
+    .project-visual { position: relative; min-height: 360px; display: grid; place-items: center; overflow: hidden; padding: 25px; background: radial-gradient(circle at 50% 32%, rgba(141,216,230,.3), transparent 39%), linear-gradient(155deg, #234a4a, #1a302f 60%, #192821); }
+    .project-visual::before { content: ""; position: absolute; left: -12%; right: -12%; bottom: -20px; height: 65%; background: #cfe9db; clip-path: polygon(0 90%, 22% 32%, 35% 63%, 54% 5%, 70% 55%, 85% 23%, 100% 80%, 100% 100%, 0 100%); opacity: .88; }
+    .project-visual::after { content: ""; position: absolute; inset: 18px; border: 1px solid rgba(240,255,250,.19); border-radius: 17px; }
+    .project-mark { position: relative; z-index: 1; display: grid; place-items: center; width: 126px; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.55); border-radius: 31px; background: rgba(15,39,40,.82); box-shadow: 0 20px 60px rgba(0,0,0,.28); font-size: 4rem; transform: rotate(-5deg); }
+    .project-index { position: absolute; z-index: 2; left: 32px; top: 31px; color: rgba(248,255,250,.75); font-size: .68rem; font-weight: 850; letter-spacing: .14em; }
+    .project-content { padding: clamp(25px, 4.2vw, 44px); }
+    .project-content .status-pill { display: inline-block; padding: 5px 10px; border: 1px solid rgba(201,243,107,.22); border-radius: 999px; background: rgba(201,243,107,.08); color: var(--lime); font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .project-content h3 { margin: 17px 0 10px; font-size: clamp(1.65rem, 3vw, 2.45rem); line-height: 1.05; letter-spacing: -.055em; }
+    .project-content p { color: #bdcbbf; }
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 24px; }
+    .feature-tags span { padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px; color: #d3dfd3; font-size: .72rem; }
+    .project-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+    .small-note { margin-top: 14px; color: #91a393; font-size: .75rem; }
+
+    .contact-panel { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center; overflow: hidden; padding: clamp(26px, 5vw, 48px); }
+    .contact-panel::after { content: "BA"; position: absolute; right: 10%; top: -65px; color: rgba(201,243,107,.045); font-size: 15rem; font-weight: 950; letter-spacing: -.13em; pointer-events: none; }
+    .contact-panel h2 { position: relative; z-index: 1; max-width: 600px; }
+    .contact-panel p { position: relative; z-index: 1; margin: 14px 0 0; max-width: 570px; color: var(--muted); }
+    .contact-links { position: relative; z-index: 1; display: grid; gap: 10px; min-width: 210px; }
+    .contact-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); border: 1px solid var(--line); background: rgba(255,255,255,.025); border-radius: 12px; padding: 12px 14px; font-size: .83rem; font-weight: 750; overflow-wrap: anywhere; }
+    .contact-link:hover { border-color: rgba(201,243,107,.42); }
+    .contact-link span { color: var(--lime); }
+    footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-block: 25px 35px; color: #829688; font-size: .75rem; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--lime); }
+
+    @media (max-width: 850px) {
+      .hero { grid-template-columns: 1fr .72fr; gap: 25px; padding-block: 70px 65px; }
+      .profile-art { min-height: 310px; }
+      .tag-top { right: -8px; }
+      .tag-bottom { left: -12px; }
+      .ticker-inner { grid-template-columns: repeat(2, 1fr); }
+      .journey { gap: 25px; }
+      .project-card { grid-template-columns: .8fr 1.2fr; }
+      .contact-panel { grid-template-columns: 1fr; }
+      .contact-links { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .contact-link { justify-content: center; font-size: .76rem; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(var(--max), calc(100% - 28px)); }
+      .nav { min-height: 66px; }
+      .menu-toggle { display: inline-flex; }
+      .nav-links { display: none; position: absolute; top: 65px; left: 14px; right: 14px; padding: 14px; flex-direction: column; align-items: stretch; gap: 3px; border: 1px solid var(--line); border-radius: 16px; background: #172520; box-shadow: 0 20px 40px rgba(0,0,0,.28); }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 11px 12px; }
+      .nav-links .nav-cta { text-align: center; margin-top: 4px; }
+      .hero { grid-template-columns: 1fr; padding-block: 62px 48px; gap: 22px; }
+      h1 { max-width: 600px; font-size: clamp(3.2rem, 16vw, 5.2rem); }
+      .profile-art { min-height: 315px; order: -1; max-width: 390px; width: 100%; margin-inline: auto; }
+      .portrait-card { width: 58%; aspect-ratio: .9; }
+      .orbit { width: 78%; }
+      .tag-top { right: 8px; top: 20px; }
+      .tag-bottom { left: 5px; bottom: 28px; }
+      .hero-note { margin-top: 22px; }
+      .ticker-inner { gap: 16px 10px; padding-block: 18px; }
+      .ticker-item { gap: 8px; font-size: .75rem; }
+      .ticker-icon { width: 32px; height: 32px; border-radius: 9px; }
+      section.content-section { padding-block: 65px; }
+      .section-head { align-items: start; flex-direction: column; gap: 13px; }
+      .about-grid, .journey, .project-card { grid-template-columns: 1fr; }
+      .journey { gap: 20px; }
+      .timeline { padding-left: 11px; border-left: 1px solid var(--line); margin-left: 8px; }
+      .timeline-item::before { left: -18px; }
+      .interests-grid { grid-template-columns: 1fr; }
+      .interest-card { min-height: 0; }
+      .interest-icon { margin-bottom: 17px; }
+      .project-visual { min-height: 260px; }
+      .contact-links { grid-template-columns: 1fr; }
+      .contact-link { justify-content: flex-start; font-size: .83rem; }
+      footer { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav shell" aria-label="Main navigation">
+      <a class="brand" href="#home" aria-label="Binod Acharya home">
+        <span class="brand-mark">BA</span>
+        <span>Binod Acharya<small>Student portfolio</small></span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks">Menu ☰</button>
+      <div class="nav-links" id="navLinks">
+        <a href="#about">About</a>
+        <a href="#journey">Education</a>
+        <a href="#interests">Interests</a>
+        <a href="#projects">Projects</a>
+        <a class="nav-cta" href="#contact">Let's connect ↗</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero shell" id="home">
+      <div>
+        <div class="eyebrow">Dong-A University · Busan, South Korea</div>
+        <h1>Business minded.<br><em>Curious</em> by nature.</h1>
+        <p class="hero-copy">Hi, I’m <strong>Binod Acharya</strong> — a first-year Integrated Business Management student who is interested in entrepreneurship, investment, and turning ideas into practical projects. I’m learning one step at a time and building toward a future of my own.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#projects">Explore my project <span aria-hidden="true">↘</span></a>
+          <a class="btn btn-ghost" href="#about">More about me</a>
+        </div>
+        <div class="hero-note"><span class="online-dot" aria-hidden="true"></span> Learning, building, and growing through new experiences.</div>
+      </div>
+      <div class="profile-art" aria-label="Binod Acharya initials illustration">
+        <div class="orbit" aria-hidden="true"></div>
+        <div class="portrait-card"><div class="avatar-initials" aria-hidden="true">BA</div><div class="card-label"><span><b>Binod Acharya</b>Integrated Business Management</span><span>2026</span></div></div>
+        <div class="floating-tag tag-top"><span>↗</span> Future entrepreneur</div>
+        <div class="floating-tag tag-bottom"><span>✳</span> Nepal · Korea</div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-label="Portfolio highlights">
+      <div class="ticker-inner shell">
+        <div class="ticker-item"><span class="ticker-icon" aria-hidden="true">▦</span><span><b>Business</b>Management & strategy</span></div>
+        <div class="ticker-item"><span class="ticker-icon" aria-hidden="true">↗</span><span><b>Entrepreneurship</b>Ideas into action</span></div>
+        <div class="ticker-item"><span class="ticker-icon" aria-hidden="true">⌘</span><span><b>Digital projects</b>Learning by building</span></div>
+        <div class="ticker-item"><span class="ticker-icon" aria-hidden="true">⌂</span><span><b>Long-term goal</b>Build a business in Nepal</span></div>
+      </div>
+    </div>
+
+    <section class="content-section shell" id="about">
+      <div class="section-head">
+        <div><div class="section-kicker">01 / About me</div><h2>What drives me.</h2></div>
+        <p class="section-intro">I’m building a foundation in business while exploring different interests and developing my confidence, communication, and problem-solving skills.</p>
+      </div>
+      <div class="about-grid">
+        <article class="panel about-panel">
+          <h3>A little about my journey</h3>
+          <p>I’m from Nepal and currently studying Integrated Business Management at Dong-A University in Busan, South Korea. Studying in a new country gives me the chance to learn from different people, cultures, and ways of thinking.</p>
+          <p>I’m especially curious about how businesses begin, how they make decisions, and how good management can turn an idea into something useful. I also enjoy farming and gaming, which give me different ways to learn, relax, and stay curious.</p>
+          <p>My long-term goal is to return to Nepal, build my own business, and create opportunities that can benefit other people too.</p>
+        </article>
+        <article class="panel about-panel">
+          <h3>What I’m working toward</h3>
+          <div class="focus-list">
+            <div class="focus-item"><span class="check" aria-hidden="true">✓</span><span><b>Business knowledge</b><span>Developing a foundation in management, investment, and entrepreneurship.</span></span></div>
+            <div class="focus-item"><span class="check" aria-hidden="true">✓</span><span><b>Communication & confidence</b><span>Practising English, teamwork, and sharing ideas in class.</span></span></div>
+            <div class="focus-item"><span class="check" aria-hidden="true">✓</span><span><b>Learning through projects</b><span>Exploring digital tools and turning concepts into something people can try.</span></span></div>
+            <div class="focus-item"><span class="check" aria-hidden="true">✓</span><span><b>Future impact</b><span>Working toward a business in Nepal that can create jobs and opportunities.</span></span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-section shell" id="journey">
+      <div class="section-head">
+        <div><div class="section-kicker">02 / Education</div><h2>My learning journey.</h2></div>
+        <p class="section-intro">Each stage gives me new knowledge and a wider view of what I might build in the future.</p>
+      </div>
+      <div class="journey">
+        <aside class="panel journey-aside">
+          <div class="big-year">2026—</div>
+          <h3>Learning beyond the classroom</h3>
+          <p>My goal is to combine business knowledge with practical experience, communication, and continued self-learning.</p>
+        </aside>
+        <div class="timeline">
+          <article class="panel timeline-item">
+            <div class="meta">Current studies · Busan, South Korea</div>
+            <h3>Dong-A University</h3>
+            <p><strong>Integrated Business Management</strong><br>Building a foundation in management, business communication, teamwork, and international business perspectives.</p>
+          </article>
+          <article class="panel timeline-item">
+            <div class="meta">Previous education · Nepal</div>
+            <h3>Kanti Secondary School</h3>
+            <p>My earlier studies helped build my academic foundation and introduced me to subjects related to communication, management, economics, and general business.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section shell" id="interests">
+      <div class="section-head">
+        <div><div class="section-kicker">03 / Interests</div><h2>Things I’m curious about.</h2></div>
+        <p class="section-intro">A few interests that shape how I think, learn, and imagine my future.</p>
+      </div>
+      <div class="interests-grid">
+        <article class="panel interest-card"><div class="interest-icon" aria-hidden="true">🌱</div><h3>Farming</h3><p>I’m interested in how farming supports communities and how practical ideas can make agriculture and local business stronger.</p></article>
+        <article class="panel interest-card"><div class="interest-icon" aria-hidden="true">🎮</div><h3>Gaming</h3><p>I enjoy games and the way they combine focus, decisions, challenge, and learning through repeated practice.</p></article>
+        <article class="panel interest-card"><div class="interest-icon" aria-hidden="true">💡</div><h3>Business & ideas</h3><p>I’m curious about entrepreneurship, investment, and how a good idea can grow into a useful service or business.</p></article>
+      </div>
+    </section>
+
+    <section class="content-section shell" id="projects">
+      <div class="section-head">
+        <div><div class="section-kicker">04 / Selected project</div><h2>Learning by making.</h2></div>
+        <p class="section-intro">A small interactive project that connects gaming with keyboard control, timing, and decision-making.</p>
+      </div>
+      <article class="panel project-card">
+        <div class="project-visual" aria-label="Illustration of a snowy mountain"><span class="project-index">PROJECT 01 / INTERACTIVE GAME</span><div class="project-mark" aria-hidden="true">❄️</div></div>
+        <div class="project-content">
+          <span class="status-pill">Featured project</span>
+          <h3>Icefall Challenge</h3>
+          <p>A browser-based Himalayan climbing game. Players move a climber left and right to avoid falling ice balls, manage three lives, and choose between a safer route and a faster, riskier route. The goal is to reach 8,000 metres.</p>
+          <p>Building this project helped me explore how a game can combine clear instructions, interactive controls, changing difficulty, scoring, and meaningful choices.</p>
+          <div class="feature-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>Game logic</span></div>
+          <div class="project-actions">
+            <a class="btn btn-primary" href="iceball.html" target="_blank" rel="noopener">Play the game ↗</a>
+            <a class="btn btn-ghost" href="https://docs.google.com/document/d/1LfIObT0gTVl8fC6aiHXU93XXk1IZhJQOmMeeeSlCvCU/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Open project document ↗</a>
+            <a class="btn btn-ghost" href="https://github.com/binodacharya613-glitch/da" target="_blank" rel="noopener noreferrer">View GitHub repo ↗</a>
+          </div>
+          <div class="small-note">For the live game link to work on GitHub Pages, keep <strong>iceball.html</strong> in the same repository folder as this portfolio file.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-section shell" id="contact">
+      <div class="panel contact-panel">
+        <div>
+          <div class="section-kicker">05 / Contact</div>
+          <h2>Good ideas start with a conversation.</h2>
+          <p>I’m always learning and open to connecting with people who are interested in business, student projects, and sharing ideas. Feel free to reach out.</p>
+        </div>
+        <div class="contact-links">
+          <a class="contact-link" href="mailto:binodacharya613@gmail.com"><span aria-hidden="true">✉</span> Email me</a>
+          <a class="contact-link" href="https://www.instagram.com/_binod_acharya/" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">◎</span> Instagram</a>
+          <a class="contact-link" href="https://github.com/binodacharya613-glitch" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">⌘</span> GitHub profile</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <span>© <span id="year">2026</span> Binod Acharya · Student portfolio</span>
+    <span>Made with curiosity in Busan, South Korea · <a href="#home">Back to top ↑</a></span>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', String(open));
+      menuToggle.textContent = open ? 'Close ✕' : 'Menu ☰';
+    });
+    navLinks.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.textContent = 'Menu ☰';
+      });
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

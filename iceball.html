@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071a32">
+<title>Icefall Challenge — Himalayan Climb</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --navy: #071a32;
+    --navy-2: #0b2746;
+    --blue: #4fc8ec;
+    --blue-2: #a3e9fa;
+    --ice: #e8f9ff;
+    --muted: #a7c3d8;
+    --panel: rgba(12, 36, 62, .92);
+    --line: rgba(171, 226, 249, .2);
+    --safe: #69e4bf;
+    --risk: #ffbf69;
+    --danger: #ff708a;
+  }
+  * { box-sizing: border-box; }
+  html { min-width: 320px; background: var(--navy); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 22px 16px 30px;
+    color: var(--ice);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(ellipse at 50% -20%, rgba(66, 170, 222, .2), transparent 55%),
+      linear-gradient(160deg, #07182d 0%, #0a2745 52%, #071a32 100%);
+  }
+  button { font: inherit; }
+  button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .app { max-width: 1120px; margin: 0 auto; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin: 0 0 18px; }
+  .brand { display:flex; align-items:center; gap:12px; min-width:0; }
+  .brand-mark {
+    width:44px; height:44px; display:grid; place-items:center; flex:0 0 auto;
+    border:1px solid rgba(157,230,251,.45); border-radius:15px;
+    background:linear-gradient(145deg,rgba(63,194,234,.24),rgba(26,76,115,.42));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 28px rgba(0,0,0,.16);
+    font-size:24px;
+  }
+  .brand h1 { margin:0; letter-spacing:.04em; font-size:clamp(1.05rem,2.5vw,1.45rem); line-height:1.1; }
+  .brand p { margin:4px 0 0; color:var(--muted); font-size:.79rem; letter-spacing:.08em; text-transform:uppercase; }
+  .top-note { text-align:right; color:var(--muted); font-size:.82rem; line-height:1.45; }
+  .top-note strong { display:block; color:#dff8ff; letter-spacing:.06em; font-size:.86rem; }
+  .game-frame {
+    border:1px solid rgba(156,220,244,.27); border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,rgba(16,49,79,.94),rgba(6,24,46,.98));
+    box-shadow:0 28px 80px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .hud { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; padding:15px 16px 12px; background:rgba(3,17,34,.45); border-bottom:1px solid var(--line); }
+  .stat { min-width:0; padding:10px 12px; background:rgba(154,220,248,.055); border:1px solid rgba(180,232,250,.09); border-radius:13px; }
+  .stat-label { color:#9bbbd1; text-transform:uppercase; letter-spacing:.1em; font-size:.65rem; font-weight:750; }
+  .stat-value { margin-top:4px; font-size:clamp(1.05rem,2.4vw,1.48rem); font-weight:800; letter-spacing:.015em; line-height:1.1; white-space:nowrap; }
+  .stat-value small { font-size:.65em; font-weight:650; color:#aecbdc; }
+  .lives { color:#ff8ca3; letter-spacing:.12em; font-size:1.13rem; }
+  .route-safe { color:var(--safe); } .route-risky { color:var(--risk); } .route-wait { color:#d2e7f5; }
+  .progress-wrap { padding:0 18px 13px; background:rgba(3,17,34,.45); }
+  .progress-meta { display:flex; justify-content:space-between; gap:12px; margin-bottom:6px; color:#a4c5da; font-size:.72rem; }
+  .progress-track { height:8px; border-radius:999px; overflow:hidden; background:rgba(185,226,246,.12); border:1px solid rgba(185,226,246,.12); }
+  .progress-fill { height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,#35b5e3,#b3f5ff); box-shadow:0 0 14px rgba(79,200,236,.45); transition:width .12s linear; }
+  .stage-wrap { position:relative; padding:14px; background:linear-gradient(180deg,rgba(13,42,68,.72),rgba(6,21,40,.95)); }
+  .stage {
+    position:relative; width:100%; height:clamp(320px,53vw,540px); min-height:320px; max-height:540px;
+    border-radius:17px; overflow:hidden; background:#112e4c; border:1px solid rgba(188,234,251,.22);
+    isolation:isolate; touch-action:pan-y;
+  }
+  canvas { display:block; width:100%; height:100%; }
+  .overlay {
+    position:absolute; inset:0; z-index:4; display:flex; align-items:center; justify-content:center;
+    padding:clamp(14px,3.2vw,30px); overflow:auto;
+    background:linear-gradient(180deg,rgba(3,17,34,.52),rgba(3,17,34,.77));
+    backdrop-filter:blur(5px);
+  }
+  .overlay[hidden] { display:none !important; }
+  .overlay-card {
+    width:min(660px,100%); max-height:100%; overflow:auto; padding:clamp(18px,3vw,29px);
+    text-align:center; border:1px solid rgba(171,226,249,.29); border-radius:22px;
+    background:linear-gradient(150deg,rgba(12,39,66,.97),rgba(7,27,49,.97));
+    box-shadow:0 25px 70px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .eyebrow { color:var(--blue-2); text-transform:uppercase; letter-spacing:.18em; font-size:.68rem; font-weight:850; }
+  .hero-icon { font-size:clamp(2.8rem,7vw,4.6rem); margin:3px 0 5px; filter:drop-shadow(0 8px 18px rgba(72,197,235,.26)); }
+  .overlay h2 { margin:5px 0 10px; font-size:clamp(1.6rem,4vw,2.55rem); line-height:1.05; letter-spacing:-.035em; }
+  .overlay p { color:#b7d2e4; line-height:1.55; margin:0 auto 16px; max-width:510px; font-size:.93rem; }
+  .mini-features { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:17px 0 20px; }
+  .mini-feature { padding:10px 8px; border-radius:12px; border:1px solid rgba(167,226,248,.12); background:rgba(146,217,247,.055); color:#c4e1ee; font-size:.76rem; }
+  .mini-feature b { display:block; color:#f0fcff; font-size:.87rem; margin-bottom:3px; }
+  .button-row { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:16px; }
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:45px; padding:11px 19px;
+    border-radius:12px; border:1px solid transparent; cursor:pointer; font-weight:800; font-size:.88rem;
+    transition:transform .15s ease,filter .15s ease,background .15s ease; user-select:none;
+  }
+  .btn:hover { transform:translateY(-1px); filter:brightness(1.08); }
+  .btn:active { transform:translateY(1px); }
+  .btn-primary { color:#06243b; background:linear-gradient(100deg,#74daf4,#c4f7ff); box-shadow:0 9px 22px rgba(63,187,225,.18); }
+  .btn-secondary { color:#d9f2ff; border-color:rgba(174,226,248,.22); background:rgba(153,215,244,.08); }
+  .btn-danger { color:#ffe2e8; border-color:rgba(255,112,138,.35); background:rgba(255,112,138,.12); }
+  .route-card { text-align:left; border:1px solid rgba(179,224,242,.22); border-radius:16px; padding:16px; background:rgba(129,195,225,.055); display:flex; flex-direction:column; gap:10px; }
+  .route-card.safe { border-color:rgba(105,228,191,.4); background:linear-gradient(145deg,rgba(53,177,145,.12),rgba(12,48,65,.35)); }
+  .route-card.risky { border-color:rgba(255,191,105,.48); background:linear-gradient(145deg,rgba(200,124,43,.14),rgba(54,40,43,.23)); }
+  .route-card h3 { margin:0; font-size:1.1rem; }
+  .route-card p { margin:0; max-width:none; font-size:.82rem; line-height:1.45; }
+  .route-kicker { font-size:.65rem; text-transform:uppercase; letter-spacing:.12em; font-weight:850; }
+  .safe .route-kicker { color:var(--safe); } .risky .route-kicker { color:var(--risk); }
+  .route-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+  .route-metric { padding:8px; border-radius:10px; background:rgba(1,14,27,.26); font-size:.73rem; color:#b8d0de; }
+  .route-metric strong { display:block; color:#f1fbff; font-size:.85rem; margin-top:2px; }
+  .route-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:17px 0 5px; text-align:left; }
+  .route-choice { width:100%; min-height:46px; margin-top:auto; }
+  .checkpoint-tag { display:inline-block; padding:5px 10px; margin:0 auto 8px; color:#dbf8ff; background:rgba(79,200,236,.1); border:1px solid rgba(79,200,236,.25); border-radius:999px; font-weight:800; font-size:.75rem; }
+  .status-message { min-height:22px; margin:0 16px; color:#c1dce9; text-align:center; font-size:.79rem; }
+  .status-message strong { color:#fff; }
+  .controls-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 16px 16px; flex-wrap:wrap; }
+  .movement-controls { display:flex; align-items:center; gap:9px; }
+  .move-btn { width:65px; min-height:48px; padding:10px; font-size:1.05rem; border-radius:13px; touch-action:none; -webkit-user-select:none; user-select:none; }
+  .move-label { color:#a7c3d8; font-size:.73rem; margin-right:3px; }
+  .action-controls { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  .action-controls .btn { min-height:40px; padding:9px 13px; font-size:.78rem; }
+  .instructions { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; border-top:1px solid var(--line); padding:14px 18px 17px; color:#9cb9ce; font-size:.75rem; line-height:1.55; }
+  .instructions strong { color:#d9f3ff; }
+  .instructions .keys { text-align:right; flex:0 0 auto; }
+  .kbd { display:inline-block; min-width:23px; padding:2px 6px; margin-left:2px; border:1px solid rgba(188,232,249,.22); border-bottom-width:2px; border-radius:5px; color:#dff7ff; background:rgba(165,219,242,.07); text-align:center; font-size:.68rem; font-weight:800; }
+  .toast { position:absolute; left:50%; bottom:16px; z-index:3; transform:translateX(-50%); max-width:calc(100% - 30px); padding:10px 15px; border-radius:999px; background:rgba(7,31,50,.9); border:1px solid rgba(105,228,191,.55); color:#c9ffeb; font-weight:850; font-size:.82rem; box-shadow:0 10px 28px rgba(0,0,0,.2); pointer-events:none; white-space:nowrap; }
+  .toast[hidden] { display:none; }
+  .summary-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:18px 0 4px; }
+  .summary-stat { border:1px solid rgba(173,226,248,.15); border-radius:12px; padding:12px 6px; background:rgba(139,208,237,.06); }
+  .summary-stat span { display:block; color:#a9c6d8; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; }
+  .summary-stat strong { display:block; margin-top:4px; font-size:1.2rem; }
+  .footer-note { text-align:center; color:#7195af; font-size:.7rem; margin:13px 0 0; }
+  @media (max-width:700px) {
+    body { padding:12px 9px 20px; }
+    .topbar { margin-bottom:12px; }
+    .brand-mark { width:39px; height:39px; border-radius:12px; }
+    .top-note { display:none; }
+    .game-frame { border-radius:18px; }
+    .hud { gap:6px; padding:9px 9px 8px; }
+    .stat { padding:8px 7px; border-radius:10px; }
+    .stat-label { font-size:.55rem; letter-spacing:.07em; }
+    .stat-value { font-size:1rem; }
+    .lives { font-size:.87rem; letter-spacing:.02em; }
+    .progress-wrap { padding:0 10px 10px; }
+    .stage-wrap { padding:8px; }
+    .stage { height:clamp(315px,77vh,490px); min-height:315px; border-radius:13px; }
+    .overlay { padding:10px; }
+    .overlay-card { padding:17px 13px; border-radius:17px; }
+    .overlay p { font-size:.83rem; }
+    .route-grid { gap:8px; }
+    .route-card { padding:11px 10px; gap:8px; }
+    .route-card h3 { font-size:.96rem; }
+    .route-card p { font-size:.72rem; }
+    .route-metrics { grid-template-columns:1fr; gap:5px; }
+    .route-metric { padding:6px; font-size:.67rem; }
+    .route-metric strong { font-size:.78rem; }
+    .route-choice { min-height:42px; padding:8px 5px; font-size:.74rem; }
+    .checkpoint-tag { font-size:.68rem; }
+    .controls-row { padding:10px; align-items:stretch; }
+    .movement-controls { gap:6px; }
+    .move-btn { width:55px; min-height:46px; }
+    .move-label { display:none; }
+    .action-controls { justify-content:flex-end; flex:1; }
+    .action-controls .btn { flex:1 1 auto; padding:8px 9px; }
+    .instructions { padding:11px 12px 13px; font-size:.69rem; }
+    .instructions .keys { max-width:44%; }
+    .mini-features { gap:5px; }
+    .mini-feature { font-size:.67rem; padding:8px 4px; }
+    .mini-feature b { font-size:.77rem; }
+    .summary-stat strong { font-size:1.03rem; }
+    .toast { font-size:.72rem; }
+  }
+  @media (max-width:390px) {
+    .hud { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .stat { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+    .stat-value { margin-top:0; }
+    .stage { height:360px; }
+    .route-grid { grid-template-columns:1fr; max-height:min(62vh,440px); overflow:auto; }
+    .route-card { display:grid; grid-template-columns:1fr; }
+    .route-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .route-card p { font-size:.76rem; }
+  }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">❄️</div>
+      <div><h1>ICEFALL CHALLENGE</h1><p>Himalayan climbing expedition</p></div>
+    </div>
+    <div class="top-note"><strong>SUMMIT TARGET · 8,000 M</strong>Choose your route. Trust your reflexes.</div>
+  </header>
+
+  <main class="game-frame" aria-label="Icefall Challenge game">
+    <section class="hud" aria-label="Expedition statistics">
+      <div class="stat"><div><div class="stat-label">Altitude</div><div class="stat-value"><span id="altitudeValue">500</span><small> m</small></div></div></div>
+      <div class="stat"><div><div class="stat-label">Level</div><div class="stat-value" id="levelValue">1</div></div></div>
+      <div class="stat"><div><div class="stat-label">Total score</div><div class="stat-value" id="scoreValue">0</div></div></div>
+      <div class="stat"><div><div class="stat-label">Lives</div><div class="stat-value lives" id="livesValue" aria-label="3 lives">♥ ♥ ♥</div></div></div>
+      <div class="stat"><div><div class="stat-label">Current route</div><div class="stat-value route-indicator route-wait">Choose</div></div></div>
+    </section>
+    <section class="progress-wrap" aria-label="Summit progress">
+      <div class="progress-meta"><span>EXPEDITION PROGRESS</span><span><span id="progressPercent">0</span>% · 8,000 m</span></div>
+      <div class="progress-track" role="progressbar" aria-label="Progress to summit" aria-valuemin="500" aria-valuemax="8000" aria-valuenow="500" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+    </section>
+
+    <section class="stage-wrap">
+      <div class="stage" id="stage">
+        <canvas id="gameCanvas" aria-label="Mountain climbing play area. Move left and right to avoid falling ice balls."></canvas>
+        <div class="overlay" id="introOverlay">
+          <div class="overlay-card">
+            <div class="eyebrow">Your expedition begins here</div>
+            <div class="hero-icon" aria-hidden="true">🏔️</div>
+            <h2>Conquer the icefall.</h2>
+            <p>Climb from 500 metres to the Himalayan summit at 8,000 metres. Dodge faster ice balls, manage your three lives, and choose when to take a risk. The icefall intensifies with altitude, and some waves release two balls at once.</p>
+            <div class="mini-features">
+              <div class="mini-feature"><b>↔ Move</b>Use arrows or A / D</div>
+              <div class="mini-feature"><b>♥ 3 lives</b>Protection after a hit</div>
+              <div class="mini-feature"><b>⚡ Choose</b>Safe or risky routes</div>
+            </div>
+            <div class="button-row"><button class="btn btn-primary" id="startBtn">Start Climbing <span aria-hidden="true">→</span></button></div>
+          </div>
+        </div>
+
+        <div class="overlay" id="routeOverlay" hidden>
+          <div class="overlay-card">
+            <div class="eyebrow">Checkpoint reached</div>
+            <div class="checkpoint-tag" id="checkpointTag">500 METRES · ROUTE 1 OF 5</div>
+            <h2>Choose your route</h2>
+            <p id="routeIntro">Your first decision sets the pace. Choose carefully: each route stays active until the next checkpoint.</p>
+            <div class="route-grid">
+              <article class="route-card safe">
+                <div class="route-kicker">● Steady &amp; safer</div>
+                <h3>Safe Route</h3>
+                <p>Take a steadier climb with fewer, slower ice balls. A good choice when survival comes first.</p>
+                <div class="route-metrics">
+                  <div class="route-metric">Climbing speed<strong>50 m / sec</strong></div>
+                  <div class="route-metric">Obstacle danger<strong>Standard · Lower</strong></div>
+                  <div class="route-metric">Obstacle frequency<strong>Standard</strong></div>
+                  <div class="route-metric">Completion reward<strong>No route bonus</strong></div>
+                </div>
+                <button class="btn btn-secondary route-choice" id="chooseSafeBtn">Take Safe Route</button>
+              </article>
+              <article class="route-card risky">
+                <div class="route-kicker">▲ Faster &amp; dangerous</div>
+                <h3>Risky Route</h3>
+                <p>Climb 25% faster, but ice balls arrive 50% more often and move 25% faster.</p>
+                <div class="route-metrics">
+                  <div class="route-metric">Climbing speed<strong>62.5 m / sec · +25%</strong></div>
+                  <div class="route-metric">Obstacle danger<strong>High · Faster ice</strong></div>
+                  <div class="route-metric">Obstacle frequency<strong>+50%</strong></div>
+                  <div class="route-metric">Completion reward<strong>+20 points if you survive</strong></div>
+                </div>
+                <button class="btn btn-primary route-choice" id="chooseRiskyBtn">Take Risky Route ⚡</button>
+              </article>
+            </div>
+            <p style="font-size:.73rem;margin:12px auto 0">Both routes remain available at every checkpoint, even if you chose Risky last time.</p>
+          </div>
+        </div>
+
+        <div class="overlay" id="pauseOverlay" hidden>
+          <div class="overlay-card">
+            <div class="hero-icon" aria-hidden="true">⏸️</div>
+            <div class="eyebrow">Time is frozen</div><h2>Expedition paused</h2>
+            <p>Your altitude, ice balls, lives, and protection timer are on hold. Resume whenever you’re ready.</p>
+            <div class="button-row"><button class="btn btn-primary" id="resumeBtn">▶ Resume Climbing</button><button class="btn btn-secondary" id="pauseRestartBtn">Restart Expedition</button></div>
+          </div>
+        </div>
+
+        <div class="overlay" id="endOverlay" hidden>
+          <div class="overlay-card">
+            <div class="hero-icon" id="endIcon" aria-hidden="true">🏆</div>
+            <div class="eyebrow" id="endEyebrow">Expedition complete</div>
+            <h2 id="endTitle">Summit conquered!</h2>
+            <p id="endMessage">You made it to the top.</p>
+            <div class="summary-stats">
+              <div class="summary-stat"><span>Final score</span><strong id="finalScore">0</strong></div>
+              <div class="summary-stat"><span>Highest altitude</span><strong id="finalAltitude">500 m</strong></div>
+              <div class="summary-stat"><span>Risky bonuses</span><strong id="finalBonuses">0 pts</strong></div>
+            </div>
+            <div class="button-row"><button class="btn btn-primary" id="playAgainBtn">↻ Play Again</button><button class="btn btn-secondary" id="endRestartBtn">Back to Intro</button></div>
+          </div>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden>+20 risky route bonus earned!</div>
+      </div>
+    </section>
+
+    <p class="status-message" id="statusMessage" role="status" aria-live="polite">Ready to begin your expedition.</p>
+    <section class="controls-row" aria-label="Game controls">
+      <div class="movement-controls">
+        <span class="move-label">MOVE</span>
+        <button class="btn btn-secondary move-btn" id="leftBtn" aria-label="Move left" title="Hold to move left">←</button>
+        <button class="btn btn-secondary move-btn" id="rightBtn" aria-label="Move right" title="Hold to move right">→</button>
+      </div>
+      <div class="action-controls">
+        <button class="btn btn-secondary" id="pauseBtn" disabled>Ⅱ Pause</button>
+        <button class="btn btn-danger" id="restartBtn">↻ Restart</button>
+      </div>
+    </section>
+    <section class="instructions">
+      <div><strong>How to play:</strong> Avoid the falling ice balls by moving left and right. Balls speed up as you climb, and every third wave may release two staggered balls. Reach each checkpoint alive; risky routes earn +20 points only after successful completion.</div>
+      <div class="keys"><strong>Keyboard</strong><br><span class="kbd">←</span><span class="kbd">A</span> left &nbsp; <span class="kbd">→</span><span class="kbd">D</span> right<br><span class="kbd">Space</span> / <span class="kbd">Esc</span> pause</div>
+    </section>
+  </main>
+  <p class="footer-note">A self-contained browser game · No downloads, accounts, or internet connection required to play</p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const stage = $('stage');
+
+  const ui = {
+    altitude: $('altitudeValue'), level: $('levelValue'), score: $('scoreValue'), lives: $('livesValue'),
+    progress: $('progressPercent'), progressFill: $('progressFill'), progressBar: $('progressBar'),
+    intro: $('introOverlay'), route: $('routeOverlay'), pause: $('pauseOverlay'), end: $('endOverlay'),
+    start: $('startBtn'), chooseSafe: $('chooseSafeBtn'), chooseRisky: $('chooseRiskyBtn'),
+    pauseBtn: $('pauseBtn'), resume: $('resumeBtn'), restart: $('restartBtn'), pauseRestart: $('pauseRestartBtn'),
+    playAgain: $('playAgainBtn'), endRestart: $('endRestartBtn'), status: $('statusMessage'),
+    checkpointTag: $('checkpointTag'), routeIntro: $('routeIntro'), toast: $('toast'),
+    endIcon: $('endIcon'), endEyebrow: $('endEyebrow'), endTitle: $('endTitle'), endMessage: $('endMessage'),
+    finalScore: $('finalScore'), finalAltitude: $('finalAltitude'), finalBonuses: $('finalBonuses'),
+    left: $('leftBtn'), right: $('rightBtn')
+  };
+
+  const ALT_START = 500;
+  const ALT_SUMMIT = 8000;
+  const CHECKPOINTS = [500, 2000, 3500, 5000, 6500, 8000];
+  const SAFE_SPEED = 50;
+  const RISKY_BONUS = 20;
+  const MAX_LIVES = 3;
+
+  let width = 800;
+  let height = 500;
+  let dpr = 1;
+  let rafId = 0;
+  let lastFrameTime = 0;
+  let lastUiTime = 0;
+  let snow = [];
+  let distantPeaks = [];
+  let nearPeaks = [];
+  let keyLeft = false;
+  let keyRight = false;
+  let pointerLeft = false;
+  let pointerRight = false;
+  let bonusToastRemaining = 0;
+  let sceneTime = 0;
+
+  const game = {
+    state: 'intro', // intro | route | playing | paused | victory | gameover
+    altitude: ALT_START,
+    highestAltitude: ALT_START,
+    lives: MAX_LIVES,
+    route: null,
+    routeStart: ALT_START,
+    routeEnd: 2000,
+    completedRiskyRoutes: 0,
+    obstacles: [],
+    spawnTimer: 0,
+    immunity: 0,
+    hitFlash: 0,
+    bonusFlash: 0,
+    score: 0,
+    level: 1,
+    climberX: 0,
+    climberY: 0,
+    moveDirection: 0,
+    obstacleId: 0,
+    spawnCount: 0,
+    endedAt: 0
+  };
+
+  function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+  function random(min, max) { return min + Math.random() * (max - min); }
+  function fmt(value) { return Math.floor(value).toLocaleString('en-US'); }
+  function currentAltitudeScore() { return Math.max(0, Math.floor((game.altitude - ALT_START) / 500) * 10); }
+  function totalScore() { return currentAltitudeScore() + game.completedRiskyRoutes * RISKY_BONUS; }
+  function levelForAltitude(altitude) { return clamp(1 + Math.floor((altitude - ALT_START) / 1000), 1, 8); }
+  function activeGameplay() { return game.state === 'playing'; }
+
+  function setStatus(message) { ui.status.textContent = message; }
+  function hideAllOverlays() {
+    ui.intro.hidden = true; ui.route.hidden = true; ui.pause.hidden = true; ui.end.hidden = true;
+  }
+  function setState(state) {
+    game.state = state;
+    hideAllOverlays();
+    if (state === 'intro') ui.intro.hidden = false;
+    if (state === 'route') ui.route.hidden = false;
+    if (state === 'paused') ui.pause.hidden = false;
+    if (state === 'victory' || state === 'gameover') ui.end.hidden = false;
+    const canPause = state === 'playing' || state === 'paused';
+    ui.pauseBtn.disabled = !canPause;
+    ui.pauseBtn.textContent = state === 'paused' ? '▶ Resume' : 'Ⅱ Pause';
+    updateHud();
+  }
+
+  function clearInput() {
+    keyLeft = false; keyRight = false; pointerLeft = false; pointerRight = false;
+    game.moveDirection = 0;
+  }
+
+  function clearToast() {
+    bonusToastRemaining = 0;
+    ui.toast.hidden = true;
+  }
+
+  function resetExpedition(destination = 'intro') {
+    game.altitude = ALT_START;
+    game.highestAltitude = ALT_START;
+    game.lives = MAX_LIVES;
+    game.route = null;
+    game.routeStart = ALT_START;
+    game.routeEnd = 2000;
+    game.completedRiskyRoutes = 0;
+    game.obstacles = [];
+    game.spawnTimer = 0;
+    game.immunity = 0;
+    game.hitFlash = 0;
+    game.bonusFlash = 0;
+    game.score = 0;
+    game.level = 1;
+    game.climberX = width * 0.5;
+    game.climberY = height * 0.78;
+    game.moveDirection = 0;
+    game.obstacleId = 0;
+    game.spawnCount = 0;
+    game.endedAt = 0;
+    lastFrameTime = 0;
+    sceneTime = 0;
+    lastUiTime = 0;
+    clearInput();
+    clearToast();
+    setState(destination === 'route' ? 'route' : 'intro');
+    if (destination === 'route') {
+      prepareRouteOverlay();
+      setStatus('Choose your first route at 500 metres. The climb has not started yet.');
+    } else {
+      setStatus('Ready to begin your expedition.');
+    }
+    updateHud();
+  }
+
+  function startFromIntro() {
+    game.routeStart = ALT_START;
+    game.routeEnd = 2000;
+    prepareRouteOverlay();
+    setState('route');
+    setStatus('Choose Safe or Risky before active climbing begins.');
+  }
+
+  function prepareRouteOverlay() {
+    const checkpointIndex = Math.max(0, CHECKPOINTS.indexOf(Math.round(game.altitude)));
+    const nextSegment = Math.min(checkpointIndex + 1, CHECKPOINTS.length - 1);
+    const nextAltitude = CHECKPOINTS[nextSegment];
+    ui.checkpointTag.textContent = `${fmt(game.altitude)} METRES · ROUTE ${checkpointIndex + 1} OF 5`;
+    if (game.altitude === ALT_START) {
+      ui.routeIntro.textContent = 'Your first decision sets the pace. Pick a route now; no ice balls or altitude progression begin until you choose.';
+    } else if (nextAltitude === ALT_SUMMIT) {
+      ui.routeIntro.textContent = `You have reached ${fmt(game.altitude)} metres. Choose your final route to the summit at 8,000 metres.`;
+    } else {
+      ui.routeIntro.textContent = `Checkpoint secured at ${fmt(game.altitude)} metres. Choose your next route; the last section is complete and the next section has not started.`;
+    }
+  }
+
+  function chooseRoute(routeType) {
+    if (game.state !== 'route') return;
+    game.route = routeType;
+    game.routeStart = game.altitude;
+    const currentIndex = CHECKPOINTS.indexOf(Math.round(game.altitude));
+    const nextIndex = Math.min(currentIndex + 1, CHECKPOINTS.length - 1);
+    game.routeEnd = CHECKPOINTS[nextIndex];
+    game.spawnTimer = 0.5; // brief reaction window after a choice
+    game.obstacles = [];
+    game.immunity = Math.max(game.immunity, 0);
+    game.hitFlash = 0;
+    clearInput();
+    setState('playing');
+    setStatus(routeType === 'risky'
+      ? `Risky Route active: 62.5 m/sec, more frequent ice balls, +20 points if you reach ${fmt(game.routeEnd)} metres alive.`
+      : `Safe Route active: steady 50 m/sec climb. Reach ${fmt(game.routeEnd)} metres to choose again.`);
+  }
+
+  function pauseGame() {
+    if (game.state === 'playing') {
+      clearInput();
+      setState('paused');
+      setStatus('Paused. All gameplay timers are frozen.');
+    } else if (game.state === 'paused') {
+      lastFrameTime = 0;
+      setState('playing');
+      setStatus(game.route === 'risky' ? 'Resumed · Risky Route active.' : 'Resumed · Safe Route active.');
+    }
+  }
+
+  function showBonusToast() {
+    ui.toast.hidden = false;
+    bonusToastRemaining = 2.25;
+    ui.toast.textContent = `⚡ +${RISKY_BONUS} risky route bonus earned!`;
+  }
+
+  function finishGame(won) {
+    if (game.state === 'victory' || game.state === 'gameover') return;
+    clearInput();
+    game.obstacles = [];
+    game.endedAt = performance.now();
+    game.score = totalScore();
+    setState(won ? 'victory' : 'gameover');
+    ui.endIcon.textContent = won ? '🏆' : '🧗';
+    ui.endEyebrow.textContent = won ? 'Expedition complete' : 'Expedition ended';
+    ui.endTitle.textContent = won ? 'Summit conquered!' : 'Keep climbing.';
+    ui.endMessage.textContent = won
+      ? 'You reached 8,000 metres with at least one life left. The Himalayas are yours today!'
+      : 'The icefall was too much this time, but every climb teaches you something. Try a steadier route or sharpen your timing.';
+    ui.finalScore.textContent = fmt(game.score);
+    ui.finalAltitude.textContent = `${fmt(game.highestAltitude)} m`;
+    ui.finalBonuses.textContent = `${fmt(game.completedRiskyRoutes * RISKY_BONUS)} pts`;
+    setStatus(won ? 'Summit reached! Your final score includes all completed risky-route bonuses.' : 'Game over. Your earned altitude points and route bonuses have been saved for this run.');
+    updateHud();
+  }
+
+  function completeCheckpoint() {
+    const completedRoute = game.route;
+    if (completedRoute === 'risky') {
+      game.completedRiskyRoutes += 1;
+      game.score = totalScore();
+      game.bonusFlash = 1.1;
+      showBonusToast();
+    }
+    game.altitude = game.routeEnd;
+    game.highestAltitude = Math.max(game.highestAltitude, game.altitude);
+    game.level = levelForAltitude(game.altitude);
+    game.obstacles = [];
+    game.spawnTimer = 0;
+    clearInput();
+    if (game.altitude >= ALT_SUMMIT) {
+      finishGame(true);
+      return;
+    }
+    game.route = null;
+    prepareRouteOverlay();
+    setState('route');
+    setStatus(completedRoute === 'risky'
+      ? `Checkpoint reached! +${RISKY_BONUS} bonus points awarded. Choose your next route.`
+      : 'Checkpoint reached safely. Choose your next route.');
+  }
+
+  function updateHud() {
+    game.altitude = clamp(game.altitude, ALT_START, ALT_SUMMIT);
+    game.level = levelForAltitude(game.altitude);
+    game.score = totalScore();
+    ui.altitude.textContent = fmt(game.altitude);
+    ui.level.textContent = fmt(game.level);
+    ui.score.textContent = fmt(game.score);
+    const fullHearts = '♥ '.repeat(game.lives).trim();
+    const emptyHearts = '♡ '.repeat(MAX_LIVES - game.lives).trim();
+    ui.lives.textContent = [fullHearts, emptyHearts].filter(Boolean).join(' ');
+    ui.lives.setAttribute('aria-label', `${game.lives} of ${MAX_LIVES} lives remaining`);
+    const progress = clamp(((game.altitude - ALT_START) / (ALT_SUMMIT - ALT_START)) * 100, 0, 100);
+    ui.progress.textContent = Math.floor(progress);
+    ui.progressFill.style.width = `${progress}%`;
+    ui.progressBar.setAttribute('aria-valuenow', String(Math.round(game.altitude)));
+    const routeStatValue = document.querySelector('.stat-value.route-indicator');
+    if (routeStatValue) {
+      routeStatValue.textContent = game.route ? (game.route === 'risky' ? 'Risky' : 'Safe') : 'Choose';
+      routeStatValue.className = `stat-value route-indicator ${game.route === 'risky' ? 'route-risky' : game.route === 'safe' ? 'route-safe' : 'route-wait'}`;
+    }
+  }
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const oldWidth = width;
+    const oldHeight = height;
+    width = rect.width;
+    height = rect.height;
+    dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (oldWidth && oldHeight) {
+      const ratio = game.climberX / oldWidth;
+      game.climberX = clamp(ratio * width, 30, width - 30);
+      game.climberY = height * 0.78;
+      game.obstacles.forEach((obstacle) => { obstacle.x = clamp(obstacle.x / oldWidth * width, obstacle.r, width - obstacle.r); });
+    } else {
+      game.climberX = width * 0.5;
+      game.climberY = height * 0.78;
+    }
+    generateScenery();
+  }
+
+  function generateScenery() {
+    snow = Array.from({ length: Math.max(40, Math.floor(width * height / 4700)) }, () => ({
+      x: random(0, width), y: random(0, height), r: random(.7, 2.2), speed: random(12, 34), drift: random(-8, 8), alpha: random(.18, .75)
+    }));
+    distantPeaks = [];
+    nearPeaks = [];
+    let x = -40;
+    while (x < width + 80) {
+      const peakWidth = random(width * .16, width * .34);
+      distantPeaks.push({ x, w: peakWidth, h: random(height * .18, height * .42) });
+      x += peakWidth * random(.55, .83);
+    }
+    x = -50;
+    while (x < width + 100) {
+      const peakWidth = random(width * .16, width * .31);
+      nearPeaks.push({ x, w: peakWidth, h: random(height * .16, height * .36) });
+      x += peakWidth * random(.56, .84);
+    }
+  }
+
+  function drawMountainLayer(peaks, baseY, fill, snowFill, lineColor) {
+    ctx.beginPath();
+    ctx.moveTo(0, height);
+    ctx.lineTo(0, baseY);
+    for (const peak of peaks) {
+      ctx.lineTo(peak.x, baseY);
+      ctx.lineTo(peak.x + peak.w * 0.5, baseY - peak.h);
+      ctx.lineTo(peak.x + peak.w, baseY);
+    }
+    ctx.lineTo(width, baseY);
+    ctx.lineTo(width, height);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (snowFill) {
+      ctx.beginPath();
+      for (const peak of peaks) {
+        ctx.moveTo(peak.x + peak.w * .5, baseY - peak.h);
+        ctx.lineTo(peak.x + peak.w * .5 - peak.w * .16, baseY - peak.h * .58);
+        ctx.lineTo(peak.x + peak.w * .5, baseY - peak.h * .67);
+        ctx.lineTo(peak.x + peak.w * .5 + peak.w * .17, baseY - peak.h * .54);
+        ctx.closePath();
+      }
+      ctx.fillStyle = snowFill;
+      ctx.fill();
+    }
+    if (lineColor) {
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+
+  function drawBackground(dt) {
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, '#123f63');
+    sky.addColorStop(.49, '#6fb3d4');
+    sky.addColorStop(1, '#d6f0fa');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    const glow = ctx.createRadialGradient(width * .72, height * .19, 5, width * .72, height * .19, height * .38);
+    glow.addColorStop(0, 'rgba(255,255,255,.8)');
+    glow.addColorStop(.18, 'rgba(207,246,255,.26)');
+    glow.addColorStop(1, 'rgba(207,246,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.globalAlpha = .7;
+    ctx.fillStyle = '#e8fbff';
+    ctx.beginPath();
+    ctx.arc(width * .78, height * .18, Math.max(16, height * .035), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    drawMountainLayer(distantPeaks, height * .7, '#668fae', '#d7f3fc', 'rgba(255,255,255,.16)');
+    drawMountainLayer(nearPeaks, height * .84, '#2e5e7c', '#f1fbff', 'rgba(13,50,76,.22)');
+
+    // A narrow, icy climbing corridor and frozen ledges anchor the play area.
+    const corridor = ctx.createLinearGradient(0, height * .56, 0, height);
+    corridor.addColorStop(0, 'rgba(219,247,255,.03)');
+    corridor.addColorStop(1, 'rgba(234,250,255,.25)');
+    ctx.fillStyle = corridor;
+    ctx.beginPath();
+    ctx.moveTo(width * .24, height);
+    ctx.lineTo(width * .39, height * .47);
+    ctx.lineTo(width * .62, height * .47);
+    ctx.lineTo(width * .78, height);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(241,252,255,.2)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const yy = height * (.59 + i * .08);
+      ctx.beginPath();
+      ctx.moveTo(width * (.25 + i * .025), yy);
+      ctx.lineTo(width * (.75 - i * .025), yy - (i % 2 ? 2 : 1));
+      ctx.stroke();
+    }
+
+    for (const flake of snow) {
+      if (game.state === 'playing' && dt > 0) {
+        flake.y += flake.speed * dt;
+        flake.x += flake.drift * dt;
+        if (flake.y > height + 4) { flake.y = -4; flake.x = random(0, width); }
+        if (flake.x < -4) flake.x = width + 4;
+        if (flake.x > width + 4) flake.x = -4;
+      }
+      ctx.globalAlpha = flake.alpha;
+      ctx.fillStyle = '#f4fdff';
+      ctx.beginPath();
+      ctx.arc(flake.x, flake.y, flake.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Subtle altitude marker on the left side.
+    ctx.fillStyle = 'rgba(4,27,47,.28)';
+    ctx.fillRect(12, height * .14, 3, height * .58);
+    ctx.fillStyle = 'rgba(231,251,255,.7)';
+    ctx.fillRect(11, height * .14, 5, height * .58 * ((game.altitude - ALT_START) / (ALT_SUMMIT - ALT_START)));
+  }
+
+  function drawIceBall(obstacle) {
+    const { x, y, r } = obstacle;
+    ctx.save();
+    ctx.shadowColor = 'rgba(7,43,68,.28)';
+    ctx.shadowBlur = r * .9;
+    ctx.shadowOffsetY = r * .18;
+    const grad = ctx.createRadialGradient(x - r * .34, y - r * .38, r * .08, x, y, r * 1.12);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(.28, '#d9f6ff');
+    grad.addColorStop(.7, '#6cb9dc');
+    grad.addColorStop(1, '#23658c');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = 'rgba(255,255,255,.8)';
+    ctx.lineWidth = Math.max(1, r * .07);
+    ctx.beginPath();
+    ctx.arc(x - r * .08, y - r * .08, r * .72, Math.PI * 1.08, Math.PI * 1.72);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.73)';
+    ctx.beginPath();
+    ctx.ellipse(x - r * .3, y - r * .31, r * .22, r * .12, -.65, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawClimber() {
+    const x = game.climberX;
+    const y = game.climberY;
+    const blink = game.immunity > 0 && Math.floor(sceneTime * 16) % 2 === 0;
+    if (blink) ctx.globalAlpha = .42;
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Shadow on the snow.
+    ctx.fillStyle = 'rgba(5,32,49,.24)';
+    ctx.beginPath(); ctx.ellipse(0, 25, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+    // Backpack.
+    const pack = ctx.createLinearGradient(8, -19, 22, 11);
+    pack.addColorStop(0, '#ffbd6a'); pack.addColorStop(1, '#c8613a');
+    ctx.fillStyle = pack;
+    roundRect(ctx, 7, -17, 14, 25, 5); ctx.fill();
+    ctx.fillStyle = '#8a3f36'; roundRect(ctx, 11, -11, 8, 4, 2); ctx.fill();
+
+    // Legs and boots.
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#102d47'; ctx.lineWidth = 7;
+    ctx.beginPath(); ctx.moveTo(-5, 10); ctx.lineTo(-10, 22); ctx.lineTo(-16, 23); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4, 10); ctx.lineTo(9, 20); ctx.lineTo(16, 21); ctx.stroke();
+    ctx.strokeStyle = '#e7f8ff'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(-8, 13); ctx.lineTo(-12, 20); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(6, 13); ctx.lineTo(10, 18); ctx.stroke();
+
+    // Jacket and arms.
+    const jacket = ctx.createLinearGradient(-13, -19, 13, 12);
+    jacket.addColorStop(0, '#ff795f'); jacket.addColorStop(1, '#d13e55');
+    ctx.fillStyle = jacket;
+    ctx.beginPath(); ctx.moveTo(-10, -18); ctx.quadraticCurveTo(-15, -10, -11, 1); ctx.lineTo(-6, 12); ctx.lineTo(7, 12); ctx.lineTo(11, 0); ctx.quadraticCurveTo(15, -12, 8, -18); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#f4a28a'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(-9, -12); ctx.lineTo(-18, -4); ctx.lineTo(-21, -11); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8, -12); ctx.lineTo(17, -3); ctx.lineTo(19, -10); ctx.stroke();
+
+    // Head, hood, goggles and hat.
+    ctx.fillStyle = '#f2c5a1';
+    ctx.beginPath(); ctx.arc(0, -24, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#204b68';
+    ctx.beginPath(); ctx.arc(0, -26, 10, Math.PI, Math.PI * 2); ctx.lineTo(9, -22); ctx.quadraticCurveTo(0, -17, -9, -22); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f5fcff';
+    roundRect(ctx, -9, -30, 18, 5, 2); ctx.fill();
+    ctx.fillStyle = '#234967'; roundRect(ctx, -7, -26, 14, 4, 2); ctx.fill();
+    ctx.fillStyle = '#8ee7fa'; ctx.fillRect(-6, -25, 12, 2);
+
+    // Ice axe on the climber's left.
+    ctx.strokeStyle = '#c9edf8'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-23, -18); ctx.lineTo(-20, 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-27, -19); ctx.lineTo(-18, -19); ctx.stroke();
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    if (game.immunity > 0) {
+      ctx.strokeStyle = 'rgba(188,246,255,.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y - 5, 30 + Math.sin(sceneTime * 10) * 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = 'rgba(3,24,43,.72)';
+      roundRect(ctx, x - 59, y + 33, 118, 21, 8); ctx.fill();
+      ctx.fillStyle = '#d8faff'; ctx.font = 'bold 11px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('ICE SHIELD', x, y + 47);
+    }
+    if (game.hitFlash > 0) {
+      ctx.fillStyle = `rgba(255,91,120,${Math.min(.3, game.hitFlash * .3)})`;
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
+
+  function roundRect(context, x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.arcTo(x + w, y, x + w, y + h, radius);
+    context.arcTo(x + w, y + h, x, y + h, radius);
+    context.arcTo(x, y + h, x, y, radius);
+    context.arcTo(x, y, x + w, y, radius);
+    context.closePath();
+  }
+
+  function spawnObstacle() {
+    const level = levelForAltitude(game.altitude);
+    // Faster waves mean more balls on screen. Difficulty rises by level but has a fair limit.
+    const safeInterval = Math.max(0.95, 1.5 - .065 * (level - 1));
+    const interval = game.route === 'risky' ? safeInterval / 1.5 : safeInterval;
+    // Increased from the previous build: 160 px/sec at Level 1, +10 per level.
+    // Risky Route remains 25% faster than the Safe Route.
+    const safeSpeed = 160 + 10 * (level - 1);
+    const speed = game.route === 'risky' ? safeSpeed * 1.25 : safeSpeed;
+
+    function addBall(yOffset = 0, avoidX = null) {
+      const r = random(11, 23);
+      const minX = r + 8;
+      const maxX = width - r - 8;
+      let x = random(minX, maxX);
+      // When a wave has two balls, spread them into different lanes rather than stacking them.
+      if (avoidX !== null) {
+        const minSeparation = Math.min(115, width * .32);
+        for (let attempt = 0; attempt < 12 && Math.abs(x - avoidX) < minSeparation; attempt++) {
+          x = random(minX, maxX);
+        }
+        if (Math.abs(x - avoidX) < minSeparation) {
+          x = avoidX < width / 2 ? maxX : minX;
+        }
+      }
+      game.obstacles.push({
+        id: ++game.obstacleId, x, y: -r - 4 - yOffset, r,
+        speed: speed * random(.94, 1.16),
+        drift: random(-24, 24), rotation: random(0, Math.PI * 2), spin: random(-1.5, 1.5),
+        interval, wobble: random(.5, 1.9)
+      });
+      return x;
+    }
+
+    // Ice now falls anywhere across the full width. Every third wave becomes a
+    // staggered double-ball burst to demand quicker reactions without a wall of ice.
+    const firstX = addBall();
+    game.spawnCount += 1;
+    if (game.spawnCount % 3 === 0) {
+      addBall(random(48, 92), firstX);
+    }
+    game.spawnTimer = interval;
+  }
+
+  function circleRectCollision(cx, cy, r, rx, ry, rw, rh) {
+    const closestX = clamp(cx, rx, rx + rw);
+    const closestY = clamp(cy, ry, ry + rh);
+    const dx = cx - closestX;
+    const dy = cy - closestY;
+    return dx * dx + dy * dy < r * r;
+  }
+
+  function takeHit(obstacleIndex) {
+    game.obstacles.splice(obstacleIndex, 1);
+    if (game.immunity > 0) return;
+    game.lives = Math.max(0, game.lives - 1);
+    game.immunity = 1.25;
+    game.hitFlash = .75;
+    updateHud();
+    setStatus(game.lives > 0 ? `Ouch! One life lost. ${game.lives} ${game.lives === 1 ? 'life remains' : 'lives remain'}. Ice shield active for 1.25 seconds.` : 'All lives lost. Expedition over.');
+    if (game.lives <= 0) finishGame(false);
+  }
+
+  function updateGame(dt) {
+    if (game.state !== 'playing') return;
+    const safeSpeed = SAFE_SPEED;
+    const climbSpeed = game.route === 'risky' ? safeSpeed * 1.25 : safeSpeed;
+    game.altitude = Math.min(game.routeEnd, game.altitude + climbSpeed * dt);
+    game.highestAltitude = Math.max(game.highestAltitude, game.altitude);
+    game.level = levelForAltitude(game.altitude);
+    game.score = totalScore();
+
+    game.moveDirection = (keyRight || pointerRight ? 1 : 0) - (keyLeft || pointerLeft ? 1 : 0);
+    game.climberX = clamp(game.climberX + game.moveDirection * Math.max(250, width * .55) * dt, 28, width - 28);
+    game.climberY = height * .78;
+    if (game.immunity > 0) game.immunity = Math.max(0, game.immunity - dt);
+    if (game.hitFlash > 0) game.hitFlash = Math.max(0, game.hitFlash - dt);
+    if (game.bonusFlash > 0) game.bonusFlash = Math.max(0, game.bonusFlash - dt);
+    if (bonusToastRemaining > 0) {
+      bonusToastRemaining -= dt;
+      if (bonusToastRemaining <= 0) ui.toast.hidden = true;
+    }
+
+    game.spawnTimer -= dt;
+    if (game.spawnTimer <= 0) spawnObstacle();
+
+    const playerRect = { x: game.climberX - 17, y: game.climberY - 32, w: 36, h: 57 };
+    for (let i = game.obstacles.length - 1; i >= 0; i--) {
+      const obstacle = game.obstacles[i];
+      obstacle.y += obstacle.speed * dt;
+      obstacle.x += (obstacle.drift + Math.sin(sceneTime * obstacle.wobble + obstacle.id) * 11) * dt;
+      obstacle.rotation += obstacle.spin * dt;
+      if (obstacle.x < obstacle.r) { obstacle.x = obstacle.r; obstacle.drift = Math.abs(obstacle.drift); }
+      if (obstacle.x > width - obstacle.r) { obstacle.x = width - obstacle.r; obstacle.drift = -Math.abs(obstacle.drift); }
+      if (obstacle.y - obstacle.r > height + 5) {
+        game.obstacles.splice(i, 1);
+        continue;
+      }
+      if (circleRectCollision(obstacle.x, obstacle.y, obstacle.r * .84, playerRect.x, playerRect.y, playerRect.w, playerRect.h)) {
+        takeHit(i);
+        if (game.state !== 'playing') return;
+      }
+    }
+
+    if (game.altitude >= game.routeEnd - 0.0001) {
+      game.altitude = game.routeEnd;
+      updateHud();
+      completeCheckpoint();
+      return;
+    }
+    if (lastUiTime <= 0 || sceneTime - lastUiTime > .08) {
+      updateHud();
+      lastUiTime = sceneTime;
+    }
+  }
+
+  function drawAmbientLabels() {
+    if (game.state === 'playing') {
+      ctx.save();
+      ctx.fillStyle = 'rgba(3,24,43,.42)';
+      roundRect(ctx, width - 128, 15, 112, 36, 10); ctx.fill();
+      ctx.fillStyle = game.route === 'risky' ? '#ffd08b' : '#9bf3d9';
+      ctx.font = '800 11px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(game.route === 'risky' ? '⚡ RISKY ROUTE' : '● SAFE ROUTE', width - 72, 30);
+      ctx.fillStyle = 'rgba(235,251,255,.8)'; ctx.font = '600 10px system-ui, sans-serif';
+      ctx.fillText(`SECTION TO ${fmt(game.routeEnd)} m`, width - 72, 43);
+      ctx.restore();
+    }
+    if (game.bonusFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, game.bonusFlash * 1.8);
+      ctx.fillStyle = '#f8fffd';
+      ctx.textAlign = 'center';
+      ctx.font = `900 ${Math.min(28, width * .047)}px system-ui, sans-serif`;
+      ctx.shadowColor = 'rgba(2,25,42,.6)'; ctx.shadowBlur = 12;
+      ctx.fillText(`+${RISKY_BONUS} ROUTE BONUS!`, width * .5, height * .26);
+      ctx.restore();
+    }
+  }
+
+  function render(dt) {
+    drawBackground(dt);
+    game.obstacles.forEach(drawIceBall);
+    drawClimber();
+    drawAmbientLabels();
+  }
+
+  function frame(time) {
+    rafId = requestAnimationFrame(frame);
+    if (!lastFrameTime) lastFrameTime = time;
+    const dt = Math.min(.04, Math.max(0, (time - lastFrameTime) / 1000));
+    lastFrameTime = time;
+    if (game.state === 'playing') {
+      sceneTime += dt;
+      updateGame(dt);
+    } else if (game.state === 'intro' || game.state === 'route') {
+      // Snow can drift on menus; paused gameplay clocks and scenery phases stay frozen.
+      sceneTime += Math.min(dt, .025);
+      for (const flake of snow) {
+        flake.y += flake.speed * dt * .45;
+        flake.x += flake.drift * dt * .45;
+        if (flake.y > height + 3) { flake.y = -3; flake.x = random(0, width); }
+      }
+    }
+    render(game.state === 'playing' ? dt : 0);
+  }
+
+  function bindHoldButton(button, side) {
+    const down = (event) => {
+      if (!activeGameplay()) return;
+      event.preventDefault();
+      if (side === 'left') pointerLeft = true;
+      else pointerRight = true;
+      try { button.setPointerCapture(event.pointerId); } catch (_) { /* Pointer capture is optional. */ }
+    };
+    const up = (event) => {
+      if (event) event.preventDefault();
+      if (side === 'left') pointerLeft = false;
+      else pointerRight = false;
+    };
+    button.addEventListener('pointerdown', down);
+    button.addEventListener('pointerup', up);
+    button.addEventListener('pointercancel', up);
+    button.addEventListener('lostpointercapture', up);
+    button.addEventListener('contextmenu', (event) => event.preventDefault());
+  }
+
+  document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    if (['arrowleft', 'arrowright', ' ', 'spacebar'].includes(key)) event.preventDefault();
+    if ((key === 'escape' || key === ' ' || key === 'spacebar') && !event.repeat) {
+      if (game.state === 'playing' || game.state === 'paused') pauseGame();
+      return;
+    }
+    if (!activeGameplay()) return;
+    if (key === 'arrowleft' || key === 'a') keyLeft = true;
+    if (key === 'arrowright' || key === 'd') keyRight = true;
+  }, { passive: false });
+
+  document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    if (key === 'arrowleft' || key === 'a') keyLeft = false;
+    if (key === 'arrowright' || key === 'd') keyRight = false;
+  });
+  window.addEventListener('blur', clearInput);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && game.state === 'playing') pauseGame(); });
+
+  ui.start.addEventListener('click', startFromIntro);
+  ui.chooseSafe.addEventListener('click', () => chooseRoute('safe'));
+  ui.chooseRisky.addEventListener('click', () => chooseRoute('risky'));
+  ui.pauseBtn.addEventListener('click', pauseGame);
+  ui.resume.addEventListener('click', pauseGame);
+  ui.restart.addEventListener('click', () => resetExpedition('intro'));
+  ui.pauseRestart.addEventListener('click', () => resetExpedition('intro'));
+  ui.playAgain.addEventListener('click', () => resetExpedition('route'));
+  ui.endRestart.addEventListener('click', () => resetExpedition('intro'));
+  bindHoldButton(ui.left, 'left');
+  bindHoldButton(ui.right, 'right');
+
+  // Optional double-click/touch anywhere in the play area to nudge toward that side.
+  // Movement remains controlled by the actual hold buttons and keyboard.
+  stage.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(() => resizeCanvas());
+    observer.observe(stage);
+  } else {
+    window.addEventListener('resize', resizeCanvas);
+  }
+
+  // Start fresh, size the drawing surface, and start exactly one animation loop.
+  resizeCanvas();
+  game.climberX = width * .5;
+  game.climberY = height * .78;
+  updateHud();
+  if (!rafId) rafId = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
