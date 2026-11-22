@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f1e7" />
+  <meta name="description" content="HIT THE APPLE — a colourful, five-mission arcade game about timing, concentration and precision." />
+  <title>HIT THE APPLE — Orchard Challenge</title>
+  <style>
+    :root {
+      --ink: #25342b;
+      --muted: #69786d;
+      --paper: #fffdf7;
+      --cream: #f5f1e7;
+      --line: #e6e2d6;
+      --green: #2e7048;
+      --green-dark: #205238;
+      --green-soft: #e7f1e7;
+      --red: #d94f43;
+      --gold: #e7ad45;
+      --shadow: 0 14px 38px rgba(51, 61, 45, .09);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--cream);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(255,255,255,.8), transparent 28rem),
+        var(--cream);
+    }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .app-shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 34px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark {
+      display: grid; place-items: center; width: 48px; height: 48px; flex: 0 0 auto;
+      border-radius: 16px; background: #e4f0dc; box-shadow: inset 0 0 0 1px #d5e5d0; font-size: 26px;
+    }
+    .brand h1 { margin: 0; font-size: clamp(20px, 3vw, 28px); line-height: 1.05; letter-spacing: -.055em; font-weight: 900; }
+    .brand p { margin: 5px 0 0; color: var(--muted); font-size: 11px; letter-spacing: .16em; font-weight: 800; text-transform: uppercase; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .tag { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 9px 13px; background: #fffdf8; border: 1px solid var(--line); color: #667366; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .tag-dot { width: 7px; height: 7px; border-radius: 50%; background: #79aa69; box-shadow: 0 0 0 3px #e8f2e2; }
+    .hud { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 13px; }
+    .hud-card { min-width: 0; padding: 13px 15px 12px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255,253,247,.9); box-shadow: 0 5px 15px rgba(44,54,40,.035); }
+    .hud-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .11em; font-weight: 850; white-space: nowrap; }
+    .hud-value { margin-top: 6px; font-size: clamp(19px, 2.8vw, 26px); line-height: 1; font-weight: 900; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+    .hud-sub { margin-top: 5px; color: #8a948b; font-size: 10px; font-weight: 650; }
+    .hud-card.apple .hud-value { color: var(--red); }
+    .hud-card.misses .hud-value { color: #bd7b28; }
+    .hud-card.total .hud-value { color: var(--green-dark); }
+    .mission-strip { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 15px; background: rgba(255,253,247,.74); border: 1px solid var(--line); border-radius: 14px 14px 0 0; border-bottom: 0; }
+    .mission-strip-label { font-size: 11px; font-weight: 850; color: #6d786e; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+    .mission-track { display: flex; align-items: center; gap: 8px; }
+    .mission-node { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #dddccf; background: #f5f2e9; color: #9aa096; font-size: 11px; font-weight: 900; position: relative; }
+    .mission-node:not(:last-child)::after { content: ""; position: absolute; width: 9px; height: 2px; left: 26px; top: 12px; background: #deded1; }
+    .mission-node.done { background: #dcebd9; border-color: #c4dec0; color: #2f6f48; }
+    .mission-node.current { background: #2f7049; border-color: #2f7049; color: #fff; box-shadow: 0 0 0 4px #e2eee0; }
+    .mission-node.locked { opacity: .55; }
+    .mission-progress-copy { color: #899187; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .stage-wrap { position: relative; overflow: hidden; border: 1px solid #d9dfcf; border-radius: 0 0 18px 18px; background: #d8edee; box-shadow: var(--shadow); }
+    #gameCanvas { display: block; width: 100%; height: auto; aspect-ratio: 5 / 3; touch-action: pan-y; }
+    .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(28, 45, 34, .23); backdrop-filter: blur(3px); }
+    .overlay.hidden { display: none; }
+    .overlay-card { width: min(440px, 100%); padding: 25px 26px 23px; border-radius: 21px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,253,247,.96); box-shadow: 0 22px 70px rgba(26,41,28,.22); text-align: center; }
+    .overlay-icon { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 12px; border-radius: 18px; background: #e8f2e3; font-size: 28px; }
+    .overlay-kicker { color: #6e8b6d; font-size: 10px; text-transform: uppercase; letter-spacing: .17em; font-weight: 900; }
+    .overlay-card h2 { margin: 7px 0 8px; font-size: clamp(23px, 4vw, 31px); line-height: 1.05; letter-spacing: -.05em; font-weight: 950; }
+    .overlay-card p { max-width: 340px; margin: 0 auto 17px; color: #69766b; font-size: 13px; line-height: 1.55; }
+    .overlay-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 0 0 17px; }
+    .overlay-stat { padding: 7px 10px; border-radius: 999px; background: #f0f2e9; color: #536653; font-size: 11px; font-weight: 800; }
+    .overlay-note { margin-top: 12px; color: #929990; font-size: 10px; line-height: 1.5; }
+    .controls-grid { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; margin-top: 13px; }
+    .control-card { min-width: 0; border: 1px solid var(--line); border-radius: 16px; padding: 15px; background: rgba(255,253,247,.93); box-shadow: 0 5px 16px rgba(44,54,40,.035); }
+    .control-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 11px; }
+    .control-title strong { font-size: 12px; letter-spacing: .01em; }
+    .control-title span { color: #90988f; font-size: 10px; font-weight: 750; }
+    .aim-layout { display: flex; align-items: center; justify-content: center; gap: 13px; }
+    .aim-pad { display: grid; grid-template-columns: repeat(3, 38px); grid-template-rows: repeat(2, 34px); gap: 5px; }
+    .aim-pad button { min-width: 0; padding: 0; border: 1px solid #dfe4d8; border-radius: 9px; background: #f3f5ed; color: #4c6652; font-size: 11px; font-weight: 900; cursor: pointer; user-select: none; touch-action: none; }
+    .aim-pad button:active, .aim-pad button.held { background: #dcebd8; border-color: #9fbf9c; transform: translateY(1px); }
+    .aim-pad .up { grid-column: 2; grid-row: 1; }
+    .aim-pad .left { grid-column: 1; grid-row: 2; }
+    .aim-pad .down { grid-column: 2; grid-row: 2; }
+    .aim-pad .right { grid-column: 3; grid-row: 2; }
+    .aim-hint { max-width: 95px; color: #879187; font-size: 10px; line-height: 1.45; }
+    .power-readout { color: var(--green-dark); font-size: 16px; font-weight: 950; font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; margin: 7px 0 1px; }
+    .range-labels { display: flex; justify-content: space-between; color: #929a90; font-size: 10px; font-weight: 700; }
+    .power-help { margin-top: 10px; color: #89938a; font-size: 10px; line-height: 1.4; }
+    .action-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 39px; padding: 9px 12px; border: 1px solid transparent; border-radius: 10px; font-size: 11px; font-weight: 850; cursor: pointer; transition: transform .14s ease, background .14s ease, opacity .14s ease, box-shadow .14s ease; }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { cursor: not-allowed; opacity: .42; }
+    .btn-primary { color: #fff; background: var(--green); box-shadow: 0 5px 12px rgba(46,112,72,.16); }
+    .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
+    .btn-soft { background: #edf3e9; color: #386347; border-color: #dce8d7; }
+    .btn-neutral { background: #f5f3eb; color: #5d6c5f; border-color: #e7e3d8; }
+    .btn-danger { background: #fff0ed; color: #b44c40; border-color: #f2d9d3; }
+    .action-stack .throw-btn { grid-column: 1 / -1; min-height: 43px; font-size: 12px; }
+    .action-stack .next-btn { grid-column: 1 / -1; }
+    .bottom-info { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; color: #808a80; font-size: 10px; line-height: 1.5; }
+    .key-list { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    kbd { display: inline-grid; place-items: center; min-width: 20px; padding: 2px 5px; border: 1px solid #dddcd2; border-bottom-width: 2px; border-radius: 5px; background: #fffdf7; color: #5d6c5f; font: 800 9px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .status-line { min-height: 16px; margin-top: 7px; color: #6f7b70; font-size: 11px; font-weight: 700; text-align: center; }
+    .footer-note { margin-top: 16px; color: #a0a69c; font-size: 10px; text-align: center; }
+    @media (max-width: 850px) {
+      .hud { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .hud-card:nth-child(4), .hud-card:nth-child(5) { display: block; }
+      .controls-grid { grid-template-columns: 1fr 1fr; }
+      .controls-grid .actions-card { grid-column: 1 / -1; }
+      .action-stack { grid-template-columns: repeat(4, 1fr); }
+      .action-stack .throw-btn, .action-stack .next-btn { grid-column: auto; }
+    }
+    @media (max-width: 560px) {
+      .app-shell { width: min(100% - 20px, 1180px); padding-top: 13px; }
+      .topbar { align-items: flex-start; margin-bottom: 13px; }
+      .brand-mark { width: 42px; height: 42px; border-radius: 13px; font-size: 23px; }
+      .brand p { font-size: 9px; letter-spacing: .12em; }
+      .tag { padding: 8px 9px; font-size: 10px; }
+      .hud { gap: 6px; }
+      .hud-card { padding: 10px 9px; border-radius: 12px; }
+      .hud-label { font-size: 8px; letter-spacing: .07em; }
+      .hud-value { font-size: 20px; }
+      .hud-sub { font-size: 8px; }
+      .mission-strip { padding: 9px 10px; gap: 7px; }
+      .mission-strip-label { font-size: 9px; }
+      .mission-node { width: 23px; height: 23px; font-size: 9px; }
+      .mission-node:not(:last-child)::after { width: 7px; left: 22px; top: 10px; }
+      .mission-track { gap: 6px; }
+      .mission-progress-copy { display: none; }
+      .stage-wrap { border-radius: 0 0 13px 13px; }
+      .overlay-card { padding: 18px 16px 16px; }
+      .overlay-icon { width: 44px; height: 44px; margin-bottom: 9px; font-size: 23px; border-radius: 15px; }
+      .overlay-card p { font-size: 11px; margin-bottom: 12px; }
+      .overlay-stats { margin-bottom: 12px; }
+      .overlay-note { margin-top: 8px; font-size: 9px; }
+      .controls-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 9px; }
+      .controls-grid .actions-card { grid-column: auto; }
+      .control-card { padding: 12px; border-radius: 13px; }
+      .aim-layout { justify-content: space-around; }
+      .aim-pad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 36px); }
+      .action-stack { grid-template-columns: 1fr 1fr; }
+      .action-stack .throw-btn { grid-column: 1 / -1; }
+      .bottom-info { align-items: flex-start; flex-direction: column; gap: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🍎</div>
+        <div>
+          <h1>HIT THE APPLE</h1>
+          <p>Orchard challenge · Five missions</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="tag"><span class="tag-dot"></span> Progress saved on this device</span>
+      </div>
+    </header>
+
+    <section class="hud" aria-label="Game scoreboard">
+      <div class="hud-card">
+        <div class="hud-label">🌳 Current mission</div>
+        <div class="hud-value" id="missionValue">1 / 5</div>
+        <div class="hud-sub" id="missionName">The first harvest</div>
+      </div>
+      <div class="hud-card apple">
+        <div class="hud-label">🍎 Red apples</div>
+        <div class="hud-value" id="appleValue">0 / 2</div>
+        <div class="hud-sub">Collected / required</div>
+      </div>
+      <div class="hud-card misses">
+        <div class="hud-label">✦ Chances left</div>
+        <div class="hud-value" id="missValue">3 / 3</div>
+        <div class="hud-sub">Three misses = mission failed</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">★ Mission points</div>
+        <div class="hud-value" id="attemptValue">0</div>
+        <div class="hud-sub">Provisional this attempt</div>
+      </div>
+      <div class="hud-card total">
+        <div class="hud-label">🏆 Confirmed total</div>
+        <div class="hud-value" id="totalValue">0</div>
+        <div class="hud-sub">High score: <span id="highValue">0</span></div>
+      </div>
+    </section>
+
+    <div class="mission-strip">
+      <div class="mission-strip-label">Mission progress</div>
+      <div class="mission-track" id="missionTrack" aria-label="Five mission progress"></div>
+      <div class="mission-progress-copy" id="completedCopy">0 of 5 completed</div>
+    </div>
+
+    <section class="stage-wrap" aria-label="Apple orchard game area">
+      <canvas id="gameCanvas" width="1000" height="600" role="img" aria-label="A player stands to the left of an apple tree with red and green apples. Use the controls below to aim and throw.">
+        Your browser does not support HTML Canvas. Please use a modern browser to play HIT THE APPLE.
+      </canvas>
+      <div class="overlay" id="overlay" aria-live="polite">
+        <div class="overlay-card">
+          <div class="overlay-icon" id="overlayIcon">🍎</div>
+          <div class="overlay-kicker" id="overlayKicker">Orchard challenge</div>
+          <h2 id="overlayTitle">Ready for the harvest?</h2>
+          <p id="overlayMessage">Collect the required red apples. Avoid green apples, branches and the trunk. You have three miss chances.</p>
+          <div class="overlay-stats" id="overlayStats">
+            <span class="overlay-stat">WASD to aim</span>
+            <span class="overlay-stat">Space to throw</span>
+            <span class="overlay-stat">Mouse to set power</span>
+          </div>
+          <button class="btn btn-primary" id="overlayPrimary" type="button">Start Mission 1</button>
+          <div class="overlay-note" id="overlayNote">No aiming guides or trajectory previews — judge each shot yourself.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls-grid" aria-label="Game controls">
+      <div class="control-card">
+        <div class="control-title">
+          <strong>Throwing direction</strong>
+          <span>Manual aim</span>
+        </div>
+        <div class="aim-layout">
+          <div class="aim-pad" aria-label="Direction pad">
+            <button class="up" type="button" data-aim="up" aria-label="Aim upward">W</button>
+            <button class="left" type="button" data-aim="left" aria-label="Aim left">A</button>
+            <button class="down" type="button" data-aim="down" aria-label="Aim downward">S</button>
+            <button class="right" type="button" data-aim="right" aria-label="Aim right">D</button>
+          </div>
+          <div class="aim-hint">Press and hold a direction to make a gradual adjustment.</div>
+        </div>
+      </div>
+
+      <div class="control-card">
+        <div class="control-title">
+          <strong>Throwing power</strong>
+          <output class="power-readout" id="powerValue" for="powerSlider">72%</output>
+        </div>
+        <input id="powerSlider" type="range" min="0" max="100" step="1" value="72" aria-label="Throwing power from zero to one hundred percent" />
+        <div class="range-labels"><span>0% · Minimum</span><span>100% · Maximum</span></div>
+        <div class="power-help">Choose your power before each throw. Your selection stays until you change it.</div>
+      </div>
+
+      <div class="control-card actions-card">
+        <div class="control-title">
+          <strong>Game actions</strong>
+          <span>Keyboard or touch</span>
+        </div>
+        <div class="action-stack">
+          <button class="btn btn-primary throw-btn" id="throwButton" type="button" disabled>↗ Throw stone <span>· Space</span></button>
+          <button class="btn btn-soft" id="pauseButton" type="button" disabled>Ⅱ Pause</button>
+          <button class="btn btn-neutral" id="restartButton" type="button">↻ Restart Mission</button>
+          <button class="btn btn-soft next-btn" id="nextMissionButton" type="button" disabled>Next mission →</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="status-line" id="statusLine" role="status">Choose your direction, set your power, and start the mission.</div>
+    <div class="bottom-info">
+      <div class="key-list"><span>Keyboard:</span> <kbd>A</kbd><kbd>D</kbd><kbd>W</kbd><kbd>S</kbd> aim <kbd>SPACE</kbd> throw <kbd>ESC</kbd> pause</div>
+      <div>Red apple = +10 points · Green apple / branch / trunk / ground = 1 miss · Each unused chance = +5 bonus</div>
+    </div>
+    <div class="footer-note">A self-contained arcade game · Progress and high score are stored in your browser.</div>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // HIT THE APPLE uses deliberately stylized arcade physics for a browser game.
+      // It is not a real-world throwing or aiming simulator.
+      const WIDTH = 1000;
+      const HEIGHT = 600;
+      const GROUND_Y = 518;
+      const GRAVITY = 900;
+      const STORAGE_KEY = "hit-the-apple-progress-v1";
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const $ = (id) => document.getElementById(id);
+
+      const missions = [
+        {
+          name: "The first harvest",
+          target: 2,
+          reds: [[610, 355], [720, 305], [820, 360]],
+          greens: [[665, 255], [785, 235]]
+        },
+        {
+          name: "A wider orchard",
+          target: 3,
+          reds: [[585, 310], [665, 375], [748, 282], [842, 350]],
+          greens: [[620, 235], [765, 215], [825, 270]]
+        },
+        {
+          name: "Reach the branches",
+          target: 4,
+          reds: [[590, 350], [655, 270], [715, 385], [780, 292], [850, 350]],
+          greens: [[620, 220], [745, 235], [812, 225]]
+        },
+        {
+          name: "Close together",
+          target: 5,
+          reds: [[650, 335], [690, 290], [733, 365], [770, 300], [810, 355], [720, 235]],
+          greens: [[625, 265], [680, 215], [785, 240], [845, 285]]
+        },
+        {
+          name: "The grand harvest",
+          target: 6,
+          reds: [[580, 365], [630, 270], [690, 345], [750, 230], [800, 320], [855, 265], [725, 395]],
+          greens: [[610, 220], [680, 280], [780, 205], [842, 370]]
+        }
+      ];
+
+      const branches = [
+        [748, 310, 625, 345],
+        [750, 292, 850, 250],
+        [752, 350, 858, 382],
+        [748, 385, 638, 414],
+        [746, 270, 682, 210],
+        [754, 267, 820, 203],
+        [746, 335, 680, 300]
+      ];
+
+      const defaultProgress = () => ({
+        totalScore: 0,
+        highScore: 0,
+        unlockedMission: 1,
+        highestMission: 1,
+        completedMissions: 0,
+        finalCompleted: false
+      });
+
+      function loadProgress() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          if (!saved || typeof saved !== "object") return defaultProgress();
+          return {
+            totalScore: Math.max(0, Number(saved.totalScore) || 0),
+            highScore: Math.max(0, Number(saved.highScore) || 0),
+            unlockedMission: Math.min(5, Math.max(1, Number(saved.unlockedMission) || 1)),
+            highestMission: Math.min(5, Math.max(1, Number(saved.highestMission) || 1)),
+            completedMissions: Math.min(5, Math.max(0, Number(saved.completedMissions) || 0)),
+            finalCompleted: Boolean(saved.finalCompleted)
+          };
+        } catch (error) {
+          console.warn("Saved game progress could not be read. Starting a fresh game.", error);
+          return defaultProgress();
+        }
+      }
+
+      let progress = loadProgress();
+      let currentMission = progress.finalCompleted ? 5 : progress.unlockedMission;
+      let state = progress.finalCompleted ? "victory" : "ready";
+      let apples = [];
+      let activeStone = null;
+      let redCollected = 0;
+      let missesRemaining = 3;
+      let missionPoints = 0;
+      let time = 0;
+      let lastFrame = 0;
+      let aimX = 1.0;
+      let aimY = 0.68;
+      let power = 72;
+      const held = new Set();
+      let throwCooldown = 0;
+      let toast = "Choose your direction, set your power, and start the mission.";
+
+      function saveProgress() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        } catch (error) {
+          console.warn("Progress could not be saved in this browser.", error);
+          setStatus("Progress could not be saved. Browser storage may be disabled.");
+        }
+      }
+
+      function setStatus(message) {
+        toast = message;
+        $("statusLine").textContent = message;
+      }
+
+      function makeApples(missionNumber) {
+        const data = missions[missionNumber - 1];
+        const result = [];
+        let id = 0;
+        data.reds.forEach(([x, y], index) => {
+          result.push({
+            id: id++, kind: "red", baseX: x, baseY: y,
+            radius: 17 + (index % 2), phase: index * 1.71 + missionNumber * .37,
+            speed: .85 + (index % 3) * .11, ampX: 7 + (index % 3) * 1.4, ampY: 3.5,
+            status: "hanging", fallX: x, fallY: y, fallVx: 0, fallVy: 0, rotation: 0
+          });
+        });
+        data.greens.forEach(([x, y], index) => {
+          result.push({
+            id: id++, kind: "green", baseX: x, baseY: y,
+            radius: 17 + (index % 2), phase: index * 1.93 + missionNumber * .61 + 1.2,
+            speed: .82 + (index % 3) * .13, ampX: 8 + (index % 2) * 1.7, ampY: 4,
+            status: "hanging", fallX: x, fallY: y, fallVx: 0, fallVy: 0, rotation: 0
+          });
+        });
+        return result;
+      }
+
+      function applePosition(apple) {
+        if (apple.status !== "hanging") return { x: apple.fallX, y: apple.fallY };
+        const phase = time * apple.speed + apple.phase;
+        return {
+          x: apple.baseX + Math.sin(phase) * apple.ampX,
+          y: apple.baseY + Math.cos(phase * .83) * apple.ampY
+        };
+      }
+
+      function initialiseMission() {
+        apples = makeApples(currentMission);
+        redCollected = 0;
+        missesRemaining = 3;
+        missionPoints = 0;
+        activeStone = null;
+        time = 0;
+        throwCooldown = 0;
+        aimX = 1.0;
+        aimY = 0.68;
+        held.clear();
+        updateUI();
+      }
+
+      function beginMission() {
+        if (currentMission > progress.highestMission) {
+          progress.highestMission = currentMission;
+          saveProgress();
+        }
+        initialiseMission();
+        state = "playing";
+        setStatus(`Mission ${currentMission}: collect ${missions[currentMission - 1].target} red apples.`);
+        updateUI();
+        renderOverlay();
+      }
+
+      function restartMission() {
+        if (state === "victory") return;
+        beginMission();
+      }
+
+      function startNextMission() {
+        if (state !== "completed" || currentMission >= 5) return;
+        currentMission += 1;
+        beginMission();
+      }
+
+      function resetForAnotherGame() {
+        const best = progress.highScore;
+        progress = defaultProgress();
+        progress.highScore = best;
+        currentMission = 1;
+        saveProgress();
+        state = "ready";
+        initialiseMission();
+        setStatus("A new orchard run is ready. Good luck!");
+        updateUI();
+        renderOverlay();
+      }
+
+      function currentMissionData() { return missions[currentMission - 1]; }
+
+      function completeMission() {
+        if (state !== "playing") return;
+        activeStone = null;
+        const bonus = missesRemaining * 5;
+        missionPoints += bonus;
+        progress.totalScore += missionPoints;
+        progress.highScore = Math.max(progress.highScore, progress.totalScore);
+        progress.completedMissions = Math.max(progress.completedMissions, currentMission);
+        progress.highestMission = Math.max(progress.highestMission, currentMission);
+        if (currentMission < 5) {
+          progress.unlockedMission = Math.max(progress.unlockedMission, currentMission + 1);
+          state = "completed";
+        } else {
+          progress.unlockedMission = 5;
+          progress.finalCompleted = true;
+          state = "victory";
+        }
+        saveProgress();
+        setStatus(`Mission ${currentMission} completed! ${bonus} bonus points for ${missesRemaining} unused chances.`);
+        updateUI();
+        renderOverlay();
+      }
+
+      function failMission(reason) {
+        if (state !== "playing") return;
+        activeStone = null;
+        missesRemaining = Math.max(0, missesRemaining - 1);
+        if (missesRemaining <= 0) {
+          state = "failed";
+          setStatus(`Mission failed: ${reason}. Your confirmed total remains unchanged.`);
+        } else {
+          setStatus(`${reason} — one miss chance used. ${missesRemaining} chance${missesRemaining === 1 ? "" : "s"} left.`);
+        }
+        updateUI();
+        renderOverlay();
+      }
+
+      function hitApple(apple) {
+        const pos = applePosition(apple);
+        apple.status = "falling";
+        apple.fallX = pos.x;
+        apple.fallY = pos.y;
+        apple.fallVx = Math.sin(apple.phase * 2.1) * 55;
+        apple.fallVy = -25;
+        apple.rotation = 0;
+        activeStone = null;
+        if (apple.kind === "red") {
+          redCollected += 1;
+          missionPoints += 10;
+          setStatus(`Nice hit! +10 points. ${redCollected} of ${currentMissionData().target} red apples collected.`);
+          if (redCollected >= currentMissionData().target) completeMission();
+        } else {
+          failMission("Green apple hit");
+        }
+        updateUI();
+      }
+
+      function throwStone() {
+        if (state !== "playing" || activeStone || throwCooldown > 0) return;
+        const length = Math.hypot(aimX, aimY) || 1;
+        const nx = aimX / length;
+        const ny = aimY / length;
+        // The slider changes an abstract in-game speed, not real-world throwing power.
+        const speed = 650 + power * 5;
+        const origin = { x: 203, y: 445 };
+        activeStone = {
+          x: origin.x, y: origin.y, previousX: origin.x, previousY: origin.y,
+          vx: nx * speed, vy: -ny * speed, age: 0, rotation: 0
+        };
+        throwCooldown = .18;
+        setStatus("Stone released. Watch the flight and adjust your next shot.");
+        updateUI();
+      }
+
+      function updateAim(dt) {
+        const amount = 0.82 * dt;
+        if (held.has("left")) aimX = Math.max(.58, aimX - amount);
+        if (held.has("right")) aimX = Math.min(1.42, aimX + amount);
+        if (held.has("up")) aimY = Math.min(1.34, aimY + amount);
+        if (held.has("down")) aimY = Math.max(.18, aimY - amount);
+      }
+
+      function distancePointToSegment(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const lengthSq = dx * dx + dy * dy;
+        if (!lengthSq) return Math.hypot(px - x1, py - y1);
+        const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSq));
+        return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+      }
+
+      function segmentCircleHit(ax, ay, bx, by, cx, cy, radius) {
+        return distancePointToSegment(cx, cy, ax, ay, bx, by) <= radius;
+      }
+
+      function segmentsIntersect(a, b, c, d) {
+        const cross = (p1, p2, p3) => (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+        const o1 = cross(a, b, c), o2 = cross(a, b, d), o3 = cross(c, d, a), o4 = cross(c, d, b);
+        return ((o1 > 0 && o2 < 0) || (o1 < 0 && o2 > 0)) && ((o3 > 0 && o4 < 0) || (o3 < 0 && o4 > 0));
+      }
+
+      function segmentToSegmentDistance(ax, ay, bx, by, cx, cy, dx, dy) {
+        const a = { x: ax, y: ay }, b = { x: bx, y: by }, c = { x: cx, y: cy }, d = { x: dx, y: dy };
+        if (segmentsIntersect(a, b, c, d)) return 0;
+        return Math.min(
+          distancePointToSegment(ax, ay, cx, cy, dx, dy),
+          distancePointToSegment(bx, by, cx, cy, dx, dy),
+          distancePointToSegment(cx, cy, ax, ay, bx, by),
+          distancePointToSegment(dx, dy, ax, ay, bx, by)
+        );
+      }
+
+      function segmentIntersectsRect(x1, y1, x2, y2, rect) {
+        const inside = (x, y) => x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+        if (inside(x1, y1) || inside(x2, y2)) return true;
+        const edges = [
+          [rect.x, rect.y, rect.x + rect.w, rect.y],
+          [rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + rect.h],
+          [rect.x + rect.w, rect.y + rect.h, rect.x, rect.y + rect.h],
+          [rect.x, rect.y + rect.h, rect.x, rect.y]
+        ];
+        return edges.some(([x3, y3, x4, y4]) => segmentToSegmentDistance(x1, y1, x2, y2, x3, y3, x4, y4) < .5);
+      }
+
+      function updateStone(dt) {
+        if (!activeStone) return;
+        const stone = activeStone;
+        stone.previousX = stone.x;
+        stone.previousY = stone.y;
+        stone.age += dt;
+        stone.x += stone.vx * dt;
+        stone.y += stone.vy * dt;
+        stone.vy += GRAVITY * dt;
+        stone.rotation += dt * 8;
+
+        // Check apples first so a fruit hit takes priority over the branch behind it.
+        for (const apple of apples) {
+          if (apple.status !== "hanging") continue;
+          const pos = applePosition(apple);
+          if (segmentCircleHit(stone.previousX, stone.previousY, stone.x, stone.y, pos.x, pos.y, apple.radius + 7)) {
+            hitApple(apple);
+            return;
+          }
+        }
+
+        const trunk = { x: 728, y: 252, w: 48, h: GROUND_Y - 252 };
+        if (segmentIntersectsRect(stone.previousX, stone.previousY, stone.x, stone.y, trunk)) {
+          failMission("Tree trunk hit");
+          return;
+        }
+
+        for (const [x1, y1, x2, y2] of branches) {
+          if (segmentToSegmentDistance(stone.previousX, stone.previousY, stone.x, stone.y, x1, y1, x2, y2) < 8) {
+            failMission("Branch hit");
+            return;
+          }
+        }
+
+        if ((stone.previousY < GROUND_Y && stone.y >= GROUND_Y) || stone.y > HEIGHT + 10) {
+          failMission("Ground hit");
+          return;
+        }
+        if (stone.x < -15 || stone.x > WIDTH + 20 || stone.y < -25 || stone.age > 3.2) {
+          failMission("Stone left the playing area");
+        }
+      }
+
+      function updateFallingApples(dt) {
+        for (const apple of apples) {
+          if (apple.status !== "falling") continue;
+          apple.fallX += apple.fallVx * dt;
+          apple.fallY += apple.fallVy * dt;
+          apple.fallVy += 760 * dt;
+          apple.rotation += apple.fallVx * dt * .018;
+          if (apple.fallY > HEIGHT + 35) apple.status = "gone";
+        }
+      }
+
+      function update(dt) {
+        if (state === "paused") return;
+        time += dt;
+        throwCooldown = Math.max(0, throwCooldown - dt);
+        updateFallingApples(dt);
+        if (state !== "playing") return;
+        updateAim(dt);
+        updateStone(dt);
+      }
+
+      function roundedRect(c, x, y, w, h, r) {
+        c.beginPath();
+        c.roundRect(x, y, w, h, r);
+      }
+
+      function drawCloud(x, y, scale, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.ellipse(x, y, 34 * scale, 13 * scale, 0, 0, Math.PI * 2);
+        ctx.ellipse(x - 22 * scale, y + 2 * scale, 19 * scale, 11 * scale, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + 20 * scale, y + 1 * scale, 22 * scale, 12 * scale, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + 2 * scale, y - 8 * scale, 22 * scale, 15 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawBackground() {
+        const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+        sky.addColorStop(0, "#bce2e8");
+        sky.addColorStop(.65, "#e7f1df");
+        sky.addColorStop(1, "#f3efd6");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        ctx.save();
+        ctx.fillStyle = "rgba(255, 222, 134, .75)";
+        ctx.beginPath(); ctx.arc(145, 106, 43, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,.23)";
+        ctx.beginPath(); ctx.arc(145, 106, 57, 0, Math.PI * 2); ctx.fill();
+        drawCloud(350, 104, .9, .74);
+        drawCloud(560, 155, .62, .57);
+        drawCloud(890, 92, .78, .68);
+        ctx.restore();
+
+        ctx.fillStyle = "#a5c9a0";
+        ctx.beginPath();
+        ctx.moveTo(0, 385); ctx.quadraticCurveTo(170, 290, 355, 380);
+        ctx.quadraticCurveTo(510, 300, 685, 370); ctx.quadraticCurveTo(840, 300, 1000, 365);
+        ctx.lineTo(1000, GROUND_Y); ctx.lineTo(0, GROUND_Y); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#83b384";
+        ctx.beginPath();
+        ctx.moveTo(0, 435); ctx.quadraticCurveTo(210, 375, 390, 435);
+        ctx.quadraticCurveTo(590, 375, 760, 430); ctx.quadraticCurveTo(900, 382, 1000, 425);
+        ctx.lineTo(1000, GROUND_Y); ctx.lineTo(0, GROUND_Y); ctx.closePath(); ctx.fill();
+
+        const grass = ctx.createLinearGradient(0, GROUND_Y, 0, HEIGHT);
+        grass.addColorStop(0, "#72ad68"); grass.addColorStop(1, "#4f8b53");
+        ctx.fillStyle = grass; ctx.fillRect(0, GROUND_Y, WIDTH, HEIGHT - GROUND_Y);
+        ctx.strokeStyle = "rgba(255,255,255,.13)"; ctx.lineWidth = 2;
+        for (let i = 0; i < 36; i++) {
+          const x = (i * 83 + 17) % WIDTH;
+          ctx.beginPath(); ctx.moveTo(x, GROUND_Y + 18 + (i % 3) * 8); ctx.lineTo(x - 5, GROUND_Y + 8 + (i % 3) * 8); ctx.stroke();
+        }
+
+        // A small orchard fence adds depth without acting as a gameplay obstacle.
+        ctx.strokeStyle = "rgba(239,229,194,.68)"; ctx.lineWidth = 7; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(385, 468); ctx.lineTo(965, 468); ctx.moveTo(385, 493); ctx.lineTo(965, 493); ctx.stroke();
+        for (let x = 420; x < 970; x += 78) {
+          ctx.beginPath(); ctx.moveTo(x, 451); ctx.lineTo(x, 510); ctx.stroke();
+        }
+      }
+
+      function drawTree() {
+        // Trunk and main limbs.
+        const trunkGrad = ctx.createLinearGradient(720, 0, 790, 0);
+        trunkGrad.addColorStop(0, "#795036"); trunkGrad.addColorStop(.48, "#a66c43"); trunkGrad.addColorStop(1, "#6c442f");
+        ctx.fillStyle = trunkGrad;
+        ctx.beginPath();
+        ctx.moveTo(728, GROUND_Y + 2); ctx.quadraticCurveTo(738, 405, 733, 310);
+        ctx.quadraticCurveTo(733, 260, 743, 220); ctx.lineTo(780, 222);
+        ctx.quadraticCurveTo(787, 306, 778, 368); ctx.quadraticCurveTo(783, 450, 793, GROUND_Y + 2); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = "#805239"; ctx.lineWidth = 17; ctx.lineCap = "round";
+        ctx.beginPath();
+        branches.forEach(([x1, y1, x2, y2]) => { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); });
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(227,177,119,.45)"; ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(746, 390); ctx.quadraticCurveTo(752, 320, 755, 250);
+        ctx.moveTo(750, 307); ctx.quadraticCurveTo(700, 292, 652, 326);
+        ctx.moveTo(757, 292); ctx.quadraticCurveTo(805, 267, 838, 251);
+        ctx.stroke();
+
+        // Layered foliage, leaving fruit visible in front.
+        const leaves = [
+          [655, 254, 81, 65, "#4e9658"], [698, 190, 91, 75, "#43884f"],
+          [777, 171, 89, 76, "#4e9656"], [842, 230, 75, 65, "#3f824b"],
+          [650, 315, 65, 43, "#5ba364"], [837, 315, 65, 45, "#5b9b59"],
+          [752, 245, 88, 67, "#5ba563"]
+        ];
+        for (const [x, y, rx, ry, color] of leaves) {
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = "rgba(190,224,143,.35)";
+        [[680,205,40,25],[750,145,45,27],[818,204,37,24],[638,285,28,18],[855,283,26,18]].forEach(([x,y,rx,ry]) => {
+          ctx.beginPath(); ctx.ellipse(x,y,rx,ry,-.3,0,Math.PI*2); ctx.fill();
+        });
+      }
+
+      function drawApple(x, y, radius, kind, rotation = 0) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        const colorA = kind === "red" ? "#f16a54" : "#8cce59";
+        const colorB = kind === "red" ? "#b82f36" : "#3f944e";
+        ctx.fillStyle = kind === "red" ? "rgba(117,54,34,.18)" : "rgba(49,93,44,.16)";
+        ctx.beginPath(); ctx.ellipse(1, radius + 4, radius * .85, 4, 0, 0, Math.PI * 2); ctx.fill();
+        const appleGrad = ctx.createRadialGradient(-radius * .38, -radius * .48, 2, 0, 0, radius * 1.35);
+        appleGrad.addColorStop(0, colorA); appleGrad.addColorStop(1, colorB);
+        ctx.fillStyle = appleGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, -radius * .68);
+        ctx.bezierCurveTo(-radius * .78, -radius * 1.22, -radius * 1.24, -.22 * radius, -radius * .83, radius * .55);
+        ctx.bezierCurveTo(-radius * .47, radius * 1.18, -radius * .12, radius * 1.04, 0, radius * .91);
+        ctx.bezierCurveTo(radius * .24, radius * 1.08, radius * .64, radius * 1.08, radius * .9, radius * .42);
+        ctx.bezierCurveTo(radius * 1.2, -radius * .28, radius * .63, -radius * 1.18, 0, -radius * .68);
+        ctx.fill();
+        ctx.strokeStyle = "#65452e"; ctx.lineWidth = 3; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(0, -radius * .74); ctx.quadraticCurveTo(2, -radius * 1.12, 6, -radius * 1.23); ctx.stroke();
+        ctx.fillStyle = "#5f9c4f";
+        ctx.beginPath(); ctx.ellipse(7, -radius * 1.13, 5, 2.4, -.35, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,.43)";
+        ctx.beginPath(); ctx.ellipse(-radius * .36, -radius * .32, radius * .17, radius * .27, -.45, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+
+      function drawApples() {
+        for (const apple of apples) {
+          if (apple.status === "gone") continue;
+          if (apple.status === "hanging") {
+            const pos = applePosition(apple);
+            // A short stem connects each swaying fruit to its branch.
+            ctx.strokeStyle = "#65482e"; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+            ctx.beginPath(); ctx.moveTo(pos.x, pos.y - apple.radius * .78); ctx.lineTo(apple.baseX + (pos.x - apple.baseX) * .45, pos.y - apple.radius - 8); ctx.stroke();
+            drawApple(pos.x, pos.y, apple.radius, apple.kind);
+          } else {
+            drawApple(apple.fallX, apple.fallY, apple.radius, apple.kind, apple.rotation);
+          }
+        }
+      }
+
+      function drawPlayer() {
+        const x = 150, footY = GROUND_Y + 1;
+        // Soft ground shadow.
+        ctx.fillStyle = "rgba(43,75,44,.2)";
+        ctx.beginPath(); ctx.ellipse(x + 20, footY - 1, 40, 8, 0, 0, Math.PI * 2); ctx.fill();
+        // Boots and legs.
+        ctx.fillStyle = "#4b5149";
+        roundedRect(ctx, x + 3, footY - 48, 16, 43, 6); ctx.fill();
+        roundedRect(ctx, x + 25, footY - 48, 16, 43, 6); ctx.fill();
+        ctx.fillStyle = "#66513e";
+        roundedRect(ctx, x - 1, footY - 11, 25, 10, 5); ctx.fill();
+        roundedRect(ctx, x + 22, footY - 11, 26, 10, 5); ctx.fill();
+        // Body and backpack.
+        ctx.fillStyle = "#d9a34f";
+        roundedRect(ctx, x - 5, footY - 111, 49, 66, 14); ctx.fill();
+        ctx.fillStyle = "#4e8056";
+        roundedRect(ctx, x + 30, footY - 103, 23, 48, 8); ctx.fill();
+        ctx.fillStyle = "#f0c273";
+        roundedRect(ctx, x + 4, footY - 105, 35, 53, 11); ctx.fill();
+        // Head and cap.
+        ctx.fillStyle = "#c9845e";
+        ctx.beginPath(); ctx.arc(x + 20, footY - 129, 21, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#315d44";
+        ctx.beginPath(); ctx.arc(x + 20, footY - 136, 21, Math.PI, Math.PI * 2); ctx.fill();
+        ctx.fillRect(x + 17, footY - 139, 30, 5);
+        // A small face detail.
+        ctx.fillStyle = "#3d453d"; ctx.beginPath(); ctx.arc(x + 28, footY - 130, 2, 0, Math.PI * 2); ctx.fill();
+        // Arm adjusts subtly with the selected direction; no aiming guide is drawn.
+        const angle = Math.atan2(aimY, aimX);
+        const shoulderX = x + 34, shoulderY = footY - 93;
+        const handX = shoulderX + Math.cos(angle) * 33;
+        const handY = shoulderY - Math.sin(angle) * 33;
+        ctx.strokeStyle = "#c9845e"; ctx.lineWidth = 12; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(shoulderX, shoulderY); ctx.lineTo(handX, handY); ctx.stroke();
+        ctx.fillStyle = "#b8b8ae";
+        ctx.beginPath(); ctx.arc(handX + 3, handY - 1, 5, 0, Math.PI * 2); ctx.fill();
+      }
+
+      function drawStone() {
+        if (!activeStone) return;
+        ctx.save();
+        ctx.translate(activeStone.x, activeStone.y);
+        ctx.rotate(activeStone.rotation);
+        const grad = ctx.createRadialGradient(-3, -4, 1, 0, 0, 10);
+        grad.addColorStop(0, "#e1e1d5"); grad.addColorStop(1, "#777c76");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.ellipse(0, 0, 8, 7, .2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(48,54,49,.4)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-3, -1); ctx.lineTo(2, 2); ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawScene() {
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        drawBackground();
+        drawTree();
+        drawApples();
+        drawPlayer();
+        drawStone();
+        // Mission label is environmental decoration, not a target or aim indicator.
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,.68)";
+        roundedRect(ctx, 24, 22, 205, 38, 12); ctx.fill();
+        ctx.fillStyle = "#42664c"; ctx.font = "800 13px system-ui, sans-serif";
+        ctx.fillText(`MISSION ${currentMission}  ·  ${currentMissionData().name.toUpperCase()}`, 38, 46);
+        ctx.restore();
+      }
+
+      function renderMissionTrack() {
+        const track = $("missionTrack");
+        track.innerHTML = "";
+        for (let i = 1; i <= 5; i++) {
+          const node = document.createElement("div");
+          node.className = "mission-node";
+          node.textContent = i;
+          if (i <= progress.completedMissions) node.classList.add("done");
+          else if (i === currentMission && !progress.finalCompleted) node.classList.add("current");
+          else if (i > progress.unlockedMission) node.classList.add("locked");
+          node.setAttribute("aria-label", `Mission ${i}${i <= progress.completedMissions ? ", completed" : i > progress.unlockedMission ? ", locked" : ", unlocked"}`);
+          track.appendChild(node);
+        }
+        $("completedCopy").textContent = `${progress.completedMissions} of 5 completed`;
+      }
+
+      function updateUI() {
+        const data = currentMissionData();
+        $("missionValue").textContent = `${currentMission} / 5`;
+        $("missionName").textContent = `${data.name} · Highest: ${progress.highestMission}`;
+        $("appleValue").textContent = `${redCollected} / ${data.target}`;
+        $("missValue").textContent = `${missesRemaining} / 3`;
+        $("attemptValue").textContent = String(missionPoints);
+        $("totalValue").textContent = String(progress.totalScore);
+        $("highValue").textContent = String(progress.highScore);
+        $("powerValue").textContent = `${power}%`;
+        $("powerSlider").value = String(power);
+        $("throwButton").disabled = state !== "playing" || Boolean(activeStone);
+        $("pauseButton").disabled = !["playing", "paused"].includes(state);
+        $("pauseButton").textContent = state === "paused" ? "▶ Resume" : "Ⅱ Pause";
+        $("restartButton").disabled = state === "completed" || state === "victory";
+        $("nextMissionButton").disabled = state !== "completed" || currentMission >= 5;
+        renderMissionTrack();
+      }
+
+      function renderOverlay() {
+        const overlay = $("overlay");
+        if (state === "playing") {
+          overlay.classList.add("hidden");
+          return;
+        }
+        overlay.classList.remove("hidden");
+        const icon = $("overlayIcon");
+        const kicker = $("overlayKicker");
+        const title = $("overlayTitle");
+        const message = $("overlayMessage");
+        const stats = $("overlayStats");
+        const primary = $("overlayPrimary");
+        const note = $("overlayNote");
+
+        if (state === "ready") {
+          icon.textContent = "🍎";
+          kicker.textContent = `Mission ${currentMission} · ${currentMissionData().name}`;
+          title.textContent = "Ready for the harvest?";
+          message.textContent = `Collect ${currentMissionData().target} red apples. Avoid green apples, branches, the trunk and the ground. You have three miss chances.`;
+          stats.innerHTML = `<span class="overlay-stat">${currentMissionData().reds.length} red apples</span><span class="overlay-stat">${currentMissionData().greens.length} green apples</span><span class="overlay-stat">3 miss chances</span>`;
+          primary.textContent = currentMission === 1 && progress.completedMissions === 0 ? "Start Mission 1" : `Start Mission ${currentMission}`;
+          note.textContent = "WASD to aim · Space to throw · Mouse or touch to set power.";
+        } else if (state === "paused") {
+          icon.textContent = "Ⅱ";
+          kicker.textContent = "Game paused";
+          title.textContent = "Take a moment.";
+          message.textContent = "Your apples, score, and stone position are frozen. Resume when you are ready.";
+          stats.innerHTML = `<span class="overlay-stat">${redCollected} / ${currentMissionData().target} collected</span><span class="overlay-stat">${missesRemaining} chances left</span>`;
+          primary.textContent = "Resume game";
+          note.textContent = "Press Escape to resume or use the button above.";
+        } else if (state === "failed") {
+          icon.textContent = "🌱";
+          kicker.textContent = `Mission ${currentMission} · Attempt ended`;
+          title.textContent = "Mission failed";
+          message.textContent = `You collected ${redCollected} of ${currentMissionData().target} required red apples. This attempt's points were not added to your confirmed total. Try the same mission again.`;
+          stats.innerHTML = `<span class="overlay-stat">Attempt points: ${missionPoints}</span><span class="overlay-stat">Confirmed total: ${progress.totalScore}</span>`;
+          primary.textContent = "Restart Mission";
+          note.textContent = "Your previously completed missions and confirmed score are safe.";
+        } else if (state === "completed") {
+          icon.textContent = "🎉";
+          kicker.textContent = `Mission ${currentMission} completed`;
+          title.textContent = "Great harvest!";
+          message.textContent = `You collected the required red apples and earned ${missionPoints} points, including ${missesRemaining * 5} bonus points for unused chances.`;
+          stats.innerHTML = `<span class="overlay-stat">Mission score: ${missionPoints}</span><span class="overlay-stat">Confirmed total: ${progress.totalScore}</span><span class="overlay-stat">${progress.completedMissions} missions completed</span>`;
+          primary.textContent = `Next Mission ${currentMission + 1} →`;
+          note.textContent = "The next mission is now unlocked.";
+        } else if (state === "victory") {
+          icon.textContent = "🏆";
+          kicker.textContent = "All five missions completed";
+          title.textContent = "Orchard champion!";
+          message.textContent = `You completed every mission. Your confirmed final score is ${progress.totalScore}. Your high score is ${progress.highScore}.`;
+          stats.innerHTML = `<span class="overlay-stat">5 of 5 missions</span><span class="overlay-stat">Final score: ${progress.totalScore}</span><span class="overlay-stat">High score: ${progress.highScore}</span>`;
+          primary.textContent = "Play Again";
+          note.textContent = "Play Again starts a fresh run while keeping your all-time high score.";
+        }
+        primary.onclick = () => {
+          if (state === "ready" || state === "failed") beginMission();
+          else if (state === "paused") resumeGame();
+          else if (state === "completed") startNextMission();
+          else if (state === "victory") resetForAnotherGame();
+        };
+        updateUI();
+      }
+
+      function pauseGame() {
+        if (state !== "playing") return;
+        state = "paused";
+        held.clear();
+        setStatus("Game paused.");
+        updateUI();
+        renderOverlay();
+      }
+
+      function resumeGame() {
+        if (state !== "paused") return;
+        state = "playing";
+        setStatus("Back to the orchard. Your turn!");
+        updateUI();
+        renderOverlay();
+      }
+
+      function togglePause() {
+        if (state === "playing") pauseGame();
+        else if (state === "paused") resumeGame();
+      }
+
+      function animationFrame(timestamp) {
+        if (!lastFrame) lastFrame = timestamp;
+        const dt = Math.min(.033, Math.max(0, (timestamp - lastFrame) / 1000));
+        lastFrame = timestamp;
+        update(dt);
+        drawScene();
+        requestAnimationFrame(animationFrame);
+      }
+
+      // Keyboard controls.
+      const keyMap = { a: "left", d: "right", w: "up", s: "down" };
+      window.addEventListener("keydown", (event) => {
+        if (event.target && ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)) return;
+        const key = event.key.toLowerCase();
+        if (keyMap[key]) {
+          event.preventDefault();
+          held.add(keyMap[key]);
+        } else if (event.code === "Space") {
+          event.preventDefault();
+          if (!event.repeat) throwStone();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          togglePause();
+        }
+      });
+      window.addEventListener("keyup", (event) => {
+        const key = event.key.toLowerCase();
+        if (keyMap[key]) held.delete(keyMap[key]);
+      });
+      window.addEventListener("blur", () => held.clear());
+
+      // Hold-to-adjust direction pad works with mouse, stylus and touch.
+      document.querySelectorAll("[data-aim]").forEach((button) => {
+        const direction = button.dataset.aim;
+        const stop = () => {
+          held.delete(direction);
+          button.classList.remove("held");
+        };
+        button.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          held.add(direction);
+          button.classList.add("held");
+          try { button.setPointerCapture(event.pointerId); } catch (_) {}
+        });
+        button.addEventListener("pointerup", stop);
+        button.addEventListener("pointercancel", stop);
+        button.addEventListener("lostpointercapture", stop);
+        button.addEventListener("contextmenu", (event) => event.preventDefault());
+      });
+
+      $("powerSlider").addEventListener("input", (event) => {
+        power = Number(event.target.value);
+        $("powerValue").textContent = `${power}%`;
+      });
+      $("throwButton").addEventListener("click", throwStone);
+      $("pauseButton").addEventListener("click", togglePause);
+      $("restartButton").addEventListener("click", restartMission);
+      $("nextMissionButton").addEventListener("click", startNextMission);
+
+      // Prepare the saved mission before the first frame is drawn.
+      initialiseMission();
+      if (progress.finalCompleted) {
+        state = "victory";
+        setStatus("You have completed all five missions. Your progress is saved.");
+      } else {
+        state = "ready";
+        setStatus(progress.completedMissions > 0
+          ? `Welcome back. Mission ${currentMission} is ready to begin.`
+          : "Choose your direction, set your power, and start the mission.");
+      }
+      updateUI();
+      renderOverlay();
+      requestAnimationFrame(animationFrame);
+    })();
+  </script>
+</body>
+</html>
