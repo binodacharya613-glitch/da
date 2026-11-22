@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101b18">
-  <meta name="description" content="Binod Acharya — student portfolio, business interests, learning journey, and Icefall Challenge project.">
+  <meta name="description" content="Binod Acharya — student portfolio, business interests, learning journey, and HIT THE APPLE game project.">
   <title>Binod Acharya | Student Portfolio</title>
   <style>
     :root {
@@ -128,6 +128,8 @@
     .project-visual::before { content: ""; position: absolute; left: -12%; right: -12%; bottom: -20px; height: 65%; background: #cfe9db; clip-path: polygon(0 90%, 22% 32%, 35% 63%, 54% 5%, 70% 55%, 85% 23%, 100% 80%, 100% 100%, 0 100%); opacity: .88; }
     .project-visual::after { content: ""; position: absolute; inset: 18px; border: 1px solid rgba(240,255,250,.19); border-radius: 17px; }
     .project-mark { position: relative; z-index: 1; display: grid; place-items: center; width: 126px; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.55); border-radius: 31px; background: rgba(15,39,40,.82); box-shadow: 0 20px 60px rgba(0,0,0,.28); font-size: 4rem; transform: rotate(-5deg); }
+    .apple-visual { background: radial-gradient(circle at 50% 28%, rgba(255,190,105,.22), transparent 38%), linear-gradient(155deg, #28583d, #1b382c 62%, #172720); }
+    .apple-visual::before { left: 0; right: 0; bottom: -14px; height: 42%; background: linear-gradient(180deg, rgba(130,183,104,.88), rgba(54,111,66,.98)); clip-path: ellipse(76% 65% at 50% 100%); opacity: .9; }
     .csv-visual { background: radial-gradient(circle at 50% 32%, rgba(242,166,111,.22), transparent 39%), linear-gradient(155deg, #482d31, #2c292c 60%, #192821); }
     .csv-visual::before { left: 14%; right: 14%; bottom: 15%; height: 54%; border: 1px solid rgba(255,255,255,.2); border-radius: 12px; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.08) 0 1px, transparent 1px 22px), linear-gradient(135deg, #74363a, #35272b); clip-path: none; opacity: 1; }
     .csv-bars { position: relative; z-index: 1; display: flex; align-items: end; gap: 11px; width: 48%; height: 118px; padding: 12px; border: 1px solid rgba(255,255,255,.25); border-radius: 12px; background: rgba(20,25,26,.5); transform: rotate(-4deg); }
@@ -326,19 +328,19 @@
         <p class="section-intro">A selection of interactive projects that connect creative problem-solving with practical digital skills.</p>
       </div>
       <article class="panel project-card">
-        <div class="project-visual" aria-label="Illustration of a snowy mountain"><span class="project-index">PROJECT 01 / INTERACTIVE GAME</span><div class="project-mark" aria-hidden="true">❄️</div></div>
+        <div class="project-visual apple-visual" aria-label="Illustration of a green apple orchard"><span class="project-index">PROJECT 01 / INTERACTIVE GAME</span><div class="project-mark" aria-hidden="true">🍎</div></div>
         <div class="project-content">
           <span class="status-pill">Featured project</span>
-          <h3>Icefall Challenge</h3>
-          <p>A browser-based Himalayan climbing game. Players move a climber left and right to avoid falling ice balls, manage three lives, and choose between a safer route and a faster, riskier route. The goal is to reach 8,000 metres.</p>
-          <p>Building this project helped me explore how a game can combine clear instructions, interactive controls, changing difficulty, scoring, and meaningful choices.</p>
-          <div class="feature-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>Game logic</span></div>
+          <h3>HIT THE APPLE</h3>
+          <p>A browser-based orchard arcade game built around timing, concentration, and precision. Players adjust their throwing direction and power to collect the required red apples while avoiding green apples, branches, the tree trunk, and the ground.</p>
+          <p>The game includes five missions, keyboard and touch controls, three chances per mission, a scoring system, saved progress, and a high-score record. Building it helped me explore interactive controls, game physics, mission design, and player feedback.</p>
+          <div class="feature-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span><span>Five missions</span><span>Game logic</span></div>
           <div class="project-actions">
-            <a class="btn btn-primary" href="iceball.html" target="_blank" rel="noopener">Play the game ↗</a>
+            <a class="btn btn-primary" href="HIT_THE_APPLE.html" target="_blank" rel="noopener">Play HIT THE APPLE ↗</a>
             <a class="btn btn-ghost" href="https://docs.google.com/document/d/1LfIObT0gTVl8fC6aiHXU93XXk1IZhJQOmMeeeSlCvCU/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Open project document ↗</a>
             <a class="btn btn-ghost" href="https://github.com/binodacharya613-glitch/da" target="_blank" rel="noopener noreferrer">View GitHub repo ↗</a>
           </div>
-          <div class="small-note">For the live game link to work on GitHub Pages, keep <strong>iceball.html</strong> in the same repository folder as this portfolio file.</div>
+          <div class="small-note">For the live game link to work on GitHub Pages, keep <strong>HIT_THE_APPLE.html</strong> in the same repository folder as this portfolio file.</div>
         </div>
       </article>
 
